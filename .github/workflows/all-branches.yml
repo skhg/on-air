@@ -27,11 +27,11 @@ jobs:
       #   with:
       #     files: |
       #       openapi-spec.yaml
-      - name: Cleanup
-        run: |
-          rm -rf node_modules
-          rm package.json
-          rm yarn.lock
+      # - name: Cleanup
+      #   run: |
+      #     rm -rf node_modules
+      #     rm package.json
+      #     rm yarn.lock
 
   test-compile:
     runs-on: ubuntu-latest
