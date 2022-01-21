@@ -9,24 +9,24 @@ jobs:
       - name: Install Arduino tools
         run: |
           pip install cpplint
-      - name: Install webapp tools
-        run: |
-          yarn add eslint
-          yarn add stylelint
-      - name: Run ESLint checks
-        run: |
-          yarn run eslint ./webapp/*.js
-      - name: Run StyleLint checks
-        run: |
-          yarn run stylelint ./webapp/*.css
+      # - name: Install webapp tools
+      #   run: |
+      #     yarn add eslint
+      #     yarn add stylelint
+      # - name: Run ESLint checks
+      #   run: |
+      #     yarn run eslint ./webapp/*.js
+      # - name: Run StyleLint checks
+      #   run: |
+      #     yarn run stylelint ./webapp/*.css
       - name: Run C++ linter
         run: |
           cpplint --extensions=ino **/*.ino
-      - name: Validate Swagger docs
-        uses: mbowman100/swagger-validator-action@master
-        with:
-          files: |
-            openapi-spec.yaml
+      # - name: Validate Swagger docs
+      #   uses: mbowman100/swagger-validator-action@master
+      #   with:
+      #     files: |
+      #       openapi-spec.yaml
       - name: Cleanup
         run: |
           rm -rf node_modules
