@@ -27,9 +27,6 @@ void setup() {
         lc.setIntensity(i, 6);  // Set the brightness to medium value (max 15)
         lc.clearDisplay(0);  // and clear the display
     }
-
-
-  lc.clearDisplay(0);  // and clear the display
 }
 
 void loop() {
