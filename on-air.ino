@@ -1,0 +1,290 @@
+/**
+ * Copyright 2022 Jack Higgins : https://github.com/skhg
+ * All components of this project are licensed under the MIT License.
+ * See the LICENSE file for details.
+ */
+
+#include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266HTTPClient.h>
+#include <home_wifi.h>
+#include <ArduinoJson.h>
+#include <ESPAsyncTCP.h>
+#include <WebSocketsServer.h>
+#include <LedControl.h>
+
+#define LED_DIN 13  // nodemcu v3 pin D7
+#define LED_CS 2  // nodemcu v3 pin D4
+#define LED_CLK 14  // nodemcu v3 pin D5
+
+const String STATIC_CONTENT_INDEX_LOCATION =
+"http://jackhiggins.ie/on-air/";
+
+const String HOST_NAME = "on-air";
+
+const String EMPTY_STRING = "";
+
+const String CONTENT_TYPE_TEXT_PLAIN = "text/plain";
+const String CONTENT_TYPE_APPLICATION_JSON = "application/json";
+const String CONTENT_TYPE_TEXT_HTML = "text/html";
+
+const int HTTP_OK = 200;
+const int HTTP_NO_CONTENT = 204;
+const int HTTP_NOT_FOUND = 404;
+const int HTTP_METHOD_NOT_ALLOWED = 405;
+const int HTTP_BAD_REQUEST = 400;
+
+const String METHOD_NOT_ALLOWED_MESSAGE = "Method Not Allowed";
+
+const int SENSOR_READ_INTERVAL_MILLIS = 10000;
+const int RANDOM_PIXEL_INTERVAL_MILLIS = 10;
+
+LedControl lc = LedControl(LED_DIN, LED_CLK, LED_CS, 4);
+WiFiClient WIFI_CLIENT;
+HTTPClient HTTP_CLIENT;
+ESP8266WebServer HTTP_SERVER(80);
+WebSocketsServer WEB_SOCKET_SERVER(81);
+
+/**
+ * States and event types
+ */
+enum MODES {
+  OFF,
+  RANDOM_PIXELS,
+  CLOCK
+};
+
+uint64_t _currentMillis = millis();
+uint64_t _sensorReadMillis = millis();
+uint64_t _randomPixelMillis = millis();
+MODES _activeMode = OFF;
+int _ledBrightness = 1;  // Max 15
+
+void sendToWebSocketClients(String webSocketMessage) {
+  WEB_SOCKET_SERVER.broadcastTXT(webSocketMessage);
+}
+
+void readSensors() {
+  _currentMillis = millis();
+
+  if (_currentMillis - _sensorReadMillis >
+        SENSOR_READ_INTERVAL_MILLIS) {
+    _sensorReadMillis = _currentMillis;
+
+    // read sensors and set the values as global vars
+
+    sendToWebSocketClients(sensorValuesToJsonString());
+  }
+}
+
+void renderScreen() {
+  switch (_activeMode) {
+    case OFF: renderBlankScreen(); return;
+    case RANDOM_PIXELS: renderRandomPixels(); return;
+    default: return;
+  }
+}
+
+void renderBlankScreen() {
+  clearScreen();
+}
+
+void renderRandomPixels() {
+  _currentMillis = millis();
+
+  if (_currentMillis - _randomPixelMillis <= RANDOM_PIXEL_INTERVAL_MILLIS) {
+    return;
+  }
+
+  _randomPixelMillis = _currentMillis;
+
+  int screen = random(lc.getDeviceCount());
+  int row = random(8);
+  int column = random(8);
+  int state = random(2);
+
+  lc.setLed(screen, row, column, state);
+}
+
+String sensorValuesToJsonString() {
+  String content;
+  StaticJsonDocument<JSON_OBJECT_SIZE(4)> sensorsJson;
+  sensorsJson["field-name"] = 0;
+  serializeJson(sensorsJson, content);
+  return content;
+}
+
+void httpRootEventHandler() {
+  if (HTTP_SERVER.method() != HTTP_GET) {
+    HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
+      METHOD_NOT_ALLOWED_MESSAGE);
+    return;
+  }
+
+  // Fetch content from source and forward it
+  HTTP_CLIENT.begin(WIFI_CLIENT, STATIC_CONTENT_INDEX_LOCATION);
+  HTTP_CLIENT.GET();
+
+  HTTP_SERVER.sendHeader("Cache-Control", "no-cache");
+  HTTP_SERVER.send(HTTP_OK, "text/html", HTTP_CLIENT.getString());
+}
+
+void httpNotFoundEventHandler() {
+  String message = "File Not Found\n\n";
+  message += "URI: ";
+  message += HTTP_SERVER.uri();
+  message += "\nMethod: ";
+  message += (HTTP_SERVER.method() == HTTP_GET) ? "GET" : "POST";
+  message += "\nArguments: ";
+  message += HTTP_SERVER.args();
+  message += "\n";
+  for (uint8_t i = 0; i < HTTP_SERVER.args(); i++) {
+    message += " " + HTTP_SERVER.argName(i) + ": " + HTTP_SERVER.arg(i) + "\n";
+  }
+  HTTP_SERVER.send(HTTP_NOT_FOUND, CONTENT_TYPE_TEXT_PLAIN, message);
+}
+
+void statusHttpEventHandler() {
+  if (HTTP_SERVER.method() != HTTP_GET) {
+    HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
+      METHOD_NOT_ALLOWED_MESSAGE);
+  } else {
+    String content;
+
+    StaticJsonDocument<JSON_OBJECT_SIZE(8) + 1000> statusJson;
+    statusJson["mode"] = modeToString(_activeMode);
+    serializeJson(statusJson, content);
+
+    HTTP_SERVER.send(HTTP_OK, CONTENT_TYPE_APPLICATION_JSON, content);
+  }
+}
+
+void modeHttpEventHandler() {
+  if (HTTP_SERVER.method() == HTTP_PUT) {
+    if (HTTP_SERVER.hasArg("plain") == false) {
+      HTTP_SERVER.send(HTTP_BAD_REQUEST, CONTENT_TYPE_TEXT_PLAIN,
+        "Missing body");
+    } else {
+      StaticJsonDocument<48> newModeJson;
+      deserializeJson(newModeJson, HTTP_SERVER.arg("plain"));
+      const char* newMode = newModeJson["name"];
+      _activeMode = stringToMode(newMode);
+      Serial.println("New mode!");
+      HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, "New mode!");
+      sendToWebSocketClients(modeToJsonString());
+    }
+  } else if (HTTP_SERVER.method() == HTTP_DELETE) {
+    _activeMode = OFF;
+    HTTP_SERVER.send(HTTP_OK, CONTENT_TYPE_TEXT_PLAIN, "Mode is now OFF");
+    Serial.println("Mode is now OFF");
+    sendToWebSocketClients(modeToJsonString());
+  } else if (HTTP_SERVER.method() == HTTP_GET) {
+    HTTP_SERVER.send(HTTP_OK, CONTENT_TYPE_APPLICATION_JSON,
+      modeToJsonString());
+  } else {
+    HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
+      METHOD_NOT_ALLOWED_MESSAGE);
+  }
+}
+
+String modeToJsonString() {
+  String content;
+  StaticJsonDocument<48> modeJson;
+  modeJson["mode"] = modeToString(_activeMode);
+  serializeJson(modeJson, content);
+  return content;
+}
+
+MODES stringToMode(String mode) {
+  if (mode == "random-pixels") {
+    return RANDOM_PIXELS;
+  } else if (mode == "clock") {
+    return CLOCK;
+  } else {
+    return OFF;
+  }
+}
+
+String modeToString(MODES mode) {
+  switch (mode) {
+    case OFF: return "off";
+    case RANDOM_PIXELS: return "random-pixels";
+    case CLOCK: return "clock";
+    default: return "Unknown";
+  }
+}
+
+void webSocketEventHandler(uint8_t num, WStype_t type, uint8_t * payload,
+  size_t length) {
+  IPAddress ip = WEB_SOCKET_SERVER.remoteIP(num);
+
+  switch (type) {
+    case WStype_DISCONNECTED: {
+      Serial.println("WebSocket client disconnected.");
+      break;
+    }
+    case WStype_CONNECTED: {
+      Serial.print("WebSocket client at ");
+      Serial.print(ip);
+      Serial.println(" connected.");
+      break;
+    }
+  }
+}
+
+void clearScreen() {
+  for (int i = 0; i < lc.getDeviceCount(); i++) {
+      lc.shutdown(i, false);  // It's in power-saving mode on startup
+      lc.setIntensity(i, _ledBrightness);
+      lc.clearDisplay(i);  // Clear the display
+  }
+}
+
+void setup(void) {
+  randomSeed(analogRead(0));
+  Serial.begin(115200);
+
+  clearScreen();
+
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  WiFi.hostname(HOST_NAME);
+
+  Serial.println(EMPTY_STRING);
+
+  // Wait for connection
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println(EMPTY_STRING);
+  Serial.print("Connected to ");
+  Serial.println(WIFI_SSID);
+  Serial.print("Access at http://");
+  Serial.print(WiFi.localIP());
+  Serial.print("/ or http://");
+  Serial.print(HOST_NAME);
+  Serial.println("/");
+
+  HTTP_SERVER.on("/", httpRootEventHandler);
+  HTTP_SERVER.on("/api/status", statusHttpEventHandler);
+  HTTP_SERVER.on("/api/mode", modeHttpEventHandler);
+
+  HTTP_SERVER.onNotFound(httpNotFoundEventHandler);
+
+  HTTP_SERVER.begin();
+  Serial.println("HTTP server started");
+
+  WEB_SOCKET_SERVER.begin();
+
+  // Disconnect after a single failed heartbeat
+  WEB_SOCKET_SERVER.enableHeartbeat(1000, 1000, 1);
+  WEB_SOCKET_SERVER.onEvent(webSocketEventHandler);
+}
+
+void loop(void) {
+  HTTP_SERVER.handleClient();
+  readSensors();
+  renderScreen();
+}
