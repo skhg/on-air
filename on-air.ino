@@ -14,6 +14,7 @@
 #include <ESPAsyncTCP.h>
 #include <WebSocketsServer.h>
 #include <LedControl.h>
+#include "pixels.h"
 
 #define LED_DIN 13  // nodemcu v3 pin D7
 #define LED_CS 2  // nodemcu v3 pin D4
@@ -52,8 +53,7 @@ WebSocketsServer WEB_SOCKET_SERVER(81);
  */
 enum MODES {
   OFF,
-  RANDOM_PIXELS,
-  CLOCK
+  RANDOM_PIXELS
 };
 
 uint64_t _currentMillis = millis();
@@ -61,6 +61,9 @@ uint64_t _sensorReadMillis = millis();
 uint64_t _randomPixelMillis = millis();
 MODES _activeMode = OFF;
 int _ledBrightness = 1;  // Max 15
+
+bool _zoomAlertActive = false;
+bool _zoomCallInProgress = false;
 
 void sendToWebSocketClients(String webSocketMessage) {
   WEB_SOCKET_SERVER.broadcastTXT(webSocketMessage);
@@ -80,6 +83,11 @@ void readSensors() {
 }
 
 void renderScreen() {
+  if (_zoomAlertActive && _zoomCallInProgress) {
+    renderOnAirSign();
+    return;
+  }
+  
   switch (_activeMode) {
     case OFF: renderBlankScreen(); return;
     case RANDOM_PIXELS: renderRandomPixels(); return;
@@ -89,6 +97,13 @@ void renderScreen() {
 
 void renderBlankScreen() {
   clearScreen();
+}
+
+void renderOnAirSign() {
+  print8x8(3, PIXEL_ON_AIR_BLOCK_0);
+  print8x8(2, PIXEL_ON_AIR_BLOCK_1);
+  print8x8(1, PIXEL_ON_AIR_BLOCK_2);
+  print8x8(0, PIXEL_ON_AIR_BLOCK_3);
 }
 
 void renderRandomPixels() {
@@ -106,6 +121,12 @@ void renderRandomPixels() {
   int state = random(2);
 
   lc.setLed(screen, row, column, state);
+}
+
+void print8x8(int screenId, const byte pixels[]) {
+  for (int i = 0; i < 8; i++) {
+    lc.setRow(screenId, i, pixels[i]);
+  }
 }
 
 String sensorValuesToJsonString() {
@@ -153,8 +174,13 @@ void statusHttpEventHandler() {
   } else {
     String content;
 
-    StaticJsonDocument<JSON_OBJECT_SIZE(8) + 1000> statusJson;
+    StaticJsonDocument<96> statusJson;
     statusJson["mode"] = modeToString(_activeMode);
+
+    JsonObject zoomJson = statusJson.createNestedObject("zoom");  // deduplicate this
+    zoomJson["alert-active"] = _zoomAlertActive;
+    zoomJson["call-in-progress"] = _zoomCallInProgress;
+
     serializeJson(statusJson, content);
 
     HTTP_SERVER.send(HTTP_OK, CONTENT_TYPE_APPLICATION_JSON, content);
@@ -171,37 +197,22 @@ void modeHttpEventHandler() {
       deserializeJson(newModeJson, HTTP_SERVER.arg("plain"));
       const char* newMode = newModeJson["name"];
       _activeMode = stringToMode(newMode);
-      Serial.println("New mode!");
-      HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, "New mode!");
-      sendToWebSocketClients(modeToJsonString());
+      HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+      // sendToWebSocketClients(modeToJsonString());
     }
   } else if (HTTP_SERVER.method() == HTTP_DELETE) {
     _activeMode = OFF;
-    HTTP_SERVER.send(HTTP_OK, CONTENT_TYPE_TEXT_PLAIN, "Mode is now OFF");
-    Serial.println("Mode is now OFF");
-    sendToWebSocketClients(modeToJsonString());
-  } else if (HTTP_SERVER.method() == HTTP_GET) {
-    HTTP_SERVER.send(HTTP_OK, CONTENT_TYPE_APPLICATION_JSON,
-      modeToJsonString());
+    HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+    // sendToWebSocketClients(modeToJsonString());
   } else {
     HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
       METHOD_NOT_ALLOWED_MESSAGE);
   }
 }
 
-String modeToJsonString() {
-  String content;
-  StaticJsonDocument<48> modeJson;
-  modeJson["mode"] = modeToString(_activeMode);
-  serializeJson(modeJson, content);
-  return content;
-}
-
 MODES stringToMode(String mode) {
   if (mode == "random-pixels") {
     return RANDOM_PIXELS;
-  } else if (mode == "clock") {
-    return CLOCK;
   } else {
     return OFF;
   }
@@ -211,8 +222,33 @@ String modeToString(MODES mode) {
   switch (mode) {
     case OFF: return "off";
     case RANDOM_PIXELS: return "random-pixels";
-    case CLOCK: return "clock";
     default: return "Unknown";
+  }
+}
+
+void zoomAlertHttpEventHandler() {
+  if (HTTP_SERVER.method() == HTTP_PUT) {
+    _zoomAlertActive = true;
+    HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+  } else if (HTTP_SERVER.method() == HTTP_DELETE) {
+    _zoomAlertActive = false;
+    HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+  } else {
+    HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
+      METHOD_NOT_ALLOWED_MESSAGE);
+  }
+}
+
+void zoomCallHttpEventHandler() {
+  if (HTTP_SERVER.method() == HTTP_PUT) {
+    _zoomCallInProgress = true;
+    HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+  } else if (HTTP_SERVER.method() == HTTP_DELETE) {
+    _zoomCallInProgress = false;
+    HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+  } else {
+    HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
+      METHOD_NOT_ALLOWED_MESSAGE);
   }
 }
 
@@ -270,6 +306,8 @@ void setup(void) {
   HTTP_SERVER.on("/", httpRootEventHandler);
   HTTP_SERVER.on("/api/status", statusHttpEventHandler);
   HTTP_SERVER.on("/api/mode", modeHttpEventHandler);
+  HTTP_SERVER.on("/api/alert/zoom", zoomAlertHttpEventHandler);
+  HTTP_SERVER.on("/api/alert/zoom/call", zoomCallHttpEventHandler);
 
   HTTP_SERVER.onNotFound(httpNotFoundEventHandler);
 
