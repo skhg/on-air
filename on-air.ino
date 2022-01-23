@@ -14,7 +14,7 @@
 #include <ESPAsyncTCP.h>
 #include <WebSocketsServer.h>
 #include <LedControl.h>
-#include "pixels.h"
+#include "./pixels.h"
 
 #define LED_DIN 13  // nodemcu v3 pin D7
 #define LED_CS 2  // nodemcu v3 pin D4
@@ -87,7 +87,7 @@ void renderScreen() {
     renderOnAirSign();
     return;
   }
-  
+
   switch (_activeMode) {
     case OFF: renderBlankScreen(); return;
     case RANDOM_PIXELS: renderRandomPixels(); return;
@@ -177,7 +177,7 @@ void statusHttpEventHandler() {
     StaticJsonDocument<96> statusJson;
     statusJson["mode"] = modeToString(_activeMode);
 
-    JsonObject zoomJson = statusJson.createNestedObject("zoom");  // deduplicate this
+    JsonObject zoomJson = statusJson.createNestedObject("zoom");
     zoomJson["alert-active"] = _zoomAlertActive;
     zoomJson["call-in-progress"] = _zoomCallInProgress;
 
