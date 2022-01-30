@@ -39,8 +39,8 @@ function establishWebSocketConnection() {
  * @return {undefined}
  */
 function renderSkeleton(){
-//    const webRoot = 'https://jackhiggins.ie/on-air'; //todo fix
-    const webRoot = '.';
+    const webRoot = 'https://jackhiggins.ie/on-air';
+    // const webRoot = '.';
 
     document.body.innerHTML = `
   <div class="grid-container">
@@ -87,10 +87,10 @@ function renderSkeleton(){
  * @return {undefined}
  */
 function app(){ // eslint-disable-line no-unused-vars
-//    serverAddr = '/api'; //todo fix
-    serverAddr = 'http://on-air.fritz.box/api';
-//    webSocketServerAddr = window.location.host; //todo fix
-    webSocketServerAddr = 'on-air.fritz.box';
+    serverAddr = '/api'; //todo fix
+    // serverAddr = 'http://on-air.fritz.box/api';
+    webSocketServerAddr = window.location.host; //todo fix
+    // webSocketServerAddr = 'on-air.fritz.box';
 
     state = {
         'mode': 'off',
