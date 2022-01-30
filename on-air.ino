@@ -172,19 +172,23 @@ void statusHttpEventHandler() {
     HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
       METHOD_NOT_ALLOWED_MESSAGE);
   } else {
-    String content;
-
-    StaticJsonDocument<96> statusJson;
-    statusJson["mode"] = modeToString(_activeMode);
-
-    JsonObject zoomJson = statusJson.createNestedObject("zoom");
-    zoomJson["alert-active"] = _zoomAlertActive;
-    zoomJson["call-in-progress"] = _zoomCallInProgress;
-
-    serializeJson(statusJson, content);
-
-    HTTP_SERVER.send(HTTP_OK, CONTENT_TYPE_APPLICATION_JSON, content);
+    HTTP_SERVER.send(HTTP_OK, CONTENT_TYPE_APPLICATION_JSON, stateJson());
   }
+}
+
+String stateJson() {
+  String jsonContent;
+
+  StaticJsonDocument<96> statusJson;
+  statusJson["mode"] = modeToString(_activeMode);
+
+  JsonObject zoomJson = statusJson.createNestedObject("zoom");
+  zoomJson["alert-active"] = _zoomAlertActive;
+  zoomJson["call-in-progress"] = _zoomCallInProgress;
+
+  serializeJson(statusJson, jsonContent);
+
+  return jsonContent;
 }
 
 void modeHttpEventHandler() {
@@ -198,12 +202,12 @@ void modeHttpEventHandler() {
       const char* newMode = newModeJson["name"];
       _activeMode = stringToMode(newMode);
       HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
-      // sendToWebSocketClients(modeToJsonString());
+      sendToWebSocketClients(stateJson());
     }
   } else if (HTTP_SERVER.method() == HTTP_DELETE) {
     _activeMode = OFF;
     HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
-    // sendToWebSocketClients(modeToJsonString());
+    sendToWebSocketClients(stateJson());
   } else {
     HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
       METHOD_NOT_ALLOWED_MESSAGE);
@@ -230,9 +234,11 @@ void zoomAlertHttpEventHandler() {
   if (HTTP_SERVER.method() == HTTP_PUT) {
     _zoomAlertActive = true;
     HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+    sendToWebSocketClients(stateJson());
   } else if (HTTP_SERVER.method() == HTTP_DELETE) {
     _zoomAlertActive = false;
     HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+    sendToWebSocketClients(stateJson());
   } else {
     HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
       METHOD_NOT_ALLOWED_MESSAGE);
@@ -243,9 +249,11 @@ void zoomCallHttpEventHandler() {
   if (HTTP_SERVER.method() == HTTP_PUT) {
     _zoomCallInProgress = true;
     HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+    sendToWebSocketClients(stateJson());
   } else if (HTTP_SERVER.method() == HTTP_DELETE) {
     _zoomCallInProgress = false;
     HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+    sendToWebSocketClients(stateJson());
   } else {
     HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
       METHOD_NOT_ALLOWED_MESSAGE);
