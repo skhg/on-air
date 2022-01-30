@@ -44,9 +44,15 @@ function renderSkeleton(){
 
     document.body.innerHTML = `
   <div class="grid-container">
-    <div class="row1col1 grid-box"></div>
-    <div class="row1col2 grid-box"></div>
-    <div class="row2col1 grid-box"></div>
+    <div class="row1col1 grid-box">
+        <i class="fas fa-microphone-alt"></i>
+    </div>
+    <div id="blank-display" class="row1col2 grid-box">
+        <i class="far fa-times-circle"></i>
+    </div>
+    <div id="random-pixels" class="row2col1 grid-box">
+        <i class="fas fa-braille"></i>
+    </div>
     <div class="row2col2 grid-box"></div>
     <div class="row3col1 grid-box"></div>
     <div class="row3col2 grid-box"></div>
@@ -99,6 +105,9 @@ function app(){ // eslint-disable-line no-unused-vars
     const supportsTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
     const eventName = supportsTouch ? 'touchend' : 'click';
 
+    $('random-pixels').addEventListener(eventName, randomPixels);
+    $('blank-display').addEventListener(eventName, blankDisplay);
+
     webSocketUrl = 'ws://' + webSocketServerAddr + ':81';
     refreshQuery = new XMLHttpRequest();
 
@@ -147,6 +156,21 @@ function handleWebSocketMessage(event){
  * @return {undefined}
  */
 function updateScreen(){
+    const randomPixelsDiv = $('random-pixels');
+    const blankDisplayDiv = $('blank-display');
+
+    if(state['mode'] === "random-pixels"){
+        randomPixelsDiv.className = 'row2col1 grid-box active';
+    } else {
+        randomPixelsDiv.className = 'row2col1 grid-box';
+    }
+
+    if(state['mode'] === "off"){
+        blankDisplayDiv.className = 'row1col2 grid-box active';
+    } else {
+        blankDisplayDiv.className = 'row1col2 grid-box';
+    }
+    
 
 }
 
@@ -166,6 +190,46 @@ function refreshState(){
         }
     };
     refreshQuery.send();
+}
+
+/**
+ * control over the "Random pixels animation" mode
+ * @return {undefined}
+ */
+ function randomPixels(){
+    refreshQuery.abort();
+    const xhr = new XMLHttpRequest();
+    
+    const newModeJson = {
+        "name": "random-pixels"
+    };
+
+    xhr.open('PUT', serverAddr + '/mode');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify(newModeJson));
+
+    state['mode'] = 'random-pixels';
+    updateScreen();
+}
+
+/**
+ * control over the "Blank display" mode
+ * @return {undefined}
+ */
+ function blankDisplay(){
+    refreshQuery.abort();
+    const xhr = new XMLHttpRequest();
+    
+    const newModeJson = {
+        "name": "off"
+    };
+
+    xhr.open('PUT', serverAddr + '/mode');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify(newModeJson));
+
+    state['mode'] = 'off';
+    updateScreen();
 }
 
 /**

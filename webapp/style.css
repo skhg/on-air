@@ -2,7 +2,6 @@ html,
 body,
 .grid-container {
   position: fixed;
-  background-color: #fff1d0;
   height: 100%;
   width: 100%;
   margin: 0;
@@ -22,8 +21,19 @@ body,
 }
 
 .grid-box {
+    background-color: #fff1d0;
+    color: #086788;
     border: 1px solid #F0C808;
+    font-size: 15vh;
+    padding-top: 4vh;
+    text-align: center;
 }
+
+.active {
+    background-color: #F0C808;
+    color: #DD1C1A;
+}
+
 .row1col1 {
     grid-area: row1col1;
 }
