@@ -9,16 +9,16 @@ jobs:
       - name: Install Arduino tools
         run: |
           pip install cpplint
-      # - name: Install webapp tools
-      #   run: |
-      #     yarn add eslint
-      #     yarn add stylelint
-      # - name: Run ESLint checks
-      #   run: |
-      #     yarn run eslint ./webapp/*.js
-      # - name: Run StyleLint checks
-      #   run: |
-      #     yarn run stylelint ./webapp/*.css
+      - name: Install webapp tools
+        run: |
+          yarn add eslint
+          yarn add stylelint
+      - name: Run ESLint checks
+        run: |
+          yarn run eslint ./webapp/*.js
+      - name: Run StyleLint checks
+        run: |
+          yarn run stylelint ./webapp/*.css
       - name: Run C++ linter
         run: |
           cpplint --extensions=ino **/*.ino
@@ -27,11 +27,11 @@ jobs:
       #   with:
       #     files: |
       #       openapi-spec.yaml
-      # - name: Cleanup
-      #   run: |
-      #     rm -rf node_modules
-      #     rm package.json
-      #     rm yarn.lock
+      - name: Cleanup
+        run: |
+          rm -rf node_modules
+          rm package.json
+          rm yarn.lock
 
   test-compile:
     runs-on: ubuntu-latest
