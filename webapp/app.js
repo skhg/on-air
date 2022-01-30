@@ -44,13 +44,15 @@ function renderSkeleton(){
 
     document.body.innerHTML = `
   <div class="grid-container">
-      <div id="red">
-            <div class="sensor infoText" id="red-sensor"></div>
-         </div>
-      <div id="green">
-            <div class="sensor infoText" id="green-sensor"></div>
-         </div>
-    </div>
+    <div class="row1col1 grid-box"></div>
+    <div class="row1col2 grid-box"></div>
+    <div class="row2col1 grid-box"></div>
+    <div class="row2col2 grid-box"></div>
+    <div class="row3col1 grid-box"></div>
+    <div class="row3col2 grid-box"></div>
+    <div class="row4col1 grid-box"></div>
+    <div class="row4col2 grid-box"></div>
+  </div>
   `;
 
     const appleIcon = document.createElement('link');
@@ -85,23 +87,17 @@ function app(){ // eslint-disable-line no-unused-vars
     webSocketServerAddr = 'on-air.fritz.box';
 
     state = {
-        'bpm' : 100,
-        'red' : false,
-        'green' : false,
-        'redTemperature' : 0.0,
-        'greenTemperature' : 0.0,
-        'title': '',
-        'album': '',
-        'artist': ''
+        'mode': 'off',
+        'zoom': {
+            'alert-active': false,
+            'call-in-progress': false
+        }
     };
 
     renderSkeleton();
 
     const supportsTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
     const eventName = supportsTouch ? 'touchend' : 'click';
-
-    $('green').addEventListener(eventName, green);
-    $('red').addEventListener(eventName, red);
 
     webSocketUrl = 'ws://' + webSocketServerAddr + ':81';
     refreshQuery = new XMLHttpRequest();
@@ -151,24 +147,7 @@ function handleWebSocketMessage(event){
  * @return {undefined}
  */
 function updateScreen(){
-    const greenDiv = $('green');
-    const redDiv = $('red');
-    const redSensorDiv = $('red-sensor');
-    const greenSensorDiv = $('green-sensor');
 
-    if(state['green']){
-        greenDiv.className = 'bright-green';
-    } else {
-        greenDiv.className = 'dark-green';
-    }
-    if(state['red']){
-        redDiv.className = 'bright-red';
-    } else {
-        redDiv.className = 'dark-red';
-    }
-
-    greenSensorDiv.innerHTML = "" + Math.round(state['greenTemperature']) + "°C";
-    redSensorDiv.innerHTML = "" + Math.round(state['redTemperature']) + "°C";
 }
 
 /**
@@ -187,42 +166,6 @@ function refreshState(){
         }
     };
     refreshQuery.send();
-}
-
-/**
- * Notify the server that the user wants to change the green light state
- * @return {undefined}
- */
-function green(){
-    refreshQuery.abort();
-    const xhr = new XMLHttpRequest();
-    if(state['green']){
-        xhr.open('DELETE', serverAddr + '/green', true);
-    }else{
-        xhr.open('PUT', serverAddr + '/green', true);
-    }
-
-    xhr.send();
-    state['green'] = !state['green'];
-    updateScreen();
-}
-
-/**
- * Notify the server that the user wants to change the red light state
- * @return {undefined}
- */
-function red(){
-    refreshQuery.abort();
-    const xhr = new XMLHttpRequest();
-    if(state['red']){
-        xhr.open('DELETE', serverAddr + '/red', true);
-    }else{
-        xhr.open('PUT', serverAddr + '/red', true);
-    }
-
-    xhr.send();
-    state['red'] = !state['red'];
-    updateScreen();
 }
 
 /**
