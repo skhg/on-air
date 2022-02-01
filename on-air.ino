@@ -62,7 +62,7 @@ uint64_t _randomPixelMillis = millis();
 MODES _activeMode = OFF;
 int _ledBrightness = 1;  // Max 15
 
-bool _zoomAlertActive = false;
+bool _zoomAlertActive = true;
 bool _zoomCallInProgress = false;
 
 void sendToWebSocketClients(String webSocketMessage) {
