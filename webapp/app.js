@@ -43,7 +43,7 @@ function establishWebSocketConnection() {
 function renderSkeleton(){
     document.body.innerHTML = `
   <div class="grid-container">
-    <div class="row1col1 grid-box">
+    <div id="zoom-alert" class="row1col1 grid-box">
         <i class="fas fa-microphone-alt"></i>
     </div>
     <div id="blank-display" class="row1col2 grid-box">
@@ -101,6 +101,7 @@ function app(){ // eslint-disable-line no-unused-vars
 
     $('random-pixels').addEventListener(eventName, randomPixels);
     $('blank-display').addEventListener(eventName, blankDisplay);
+    $('zoom-alert').addEventListener(eventName, toggleZoomAlert);
 
     webSocketUrl = 'ws://' + webSocketServerAddr + ':81';
     refreshQuery = new XMLHttpRequest();
@@ -152,20 +153,31 @@ function handleWebSocketMessage(event){
 function updateScreen(){
     const randomPixelsDiv = $('random-pixels');
     const blankDisplayDiv = $('blank-display');
+    const zoomAlertDiv = $('zoom-alert');
 
     if(state['mode'] === "random-pixels"){
-        randomPixelsDiv.className = 'row2col1 grid-box active';
+        randomPixelsDiv.className = 'row2col1 grid-box enabled';
     } else {
         randomPixelsDiv.className = 'row2col1 grid-box';
     }
 
     if(state['mode'] === "off"){
-        blankDisplayDiv.className = 'row1col2 grid-box active';
+        blankDisplayDiv.className = 'row1col2 grid-box enabled';
     } else {
         blankDisplayDiv.className = 'row1col2 grid-box';
     }
-    
 
+    if(state['zoom']['alert-active']){
+        zoomAlertDiv.innerHTML = `<i class="fas fa-microphone-alt"></i>`;
+    }else{
+        zoomAlertDiv.innerHTML = `<i class="fas fa-microphone-alt-slash"></i>`;
+    }
+
+    if(state['zoom']['call-in-progress']){
+        zoomAlertDiv.className = 'row1col1 grid-box active'
+    }else{
+        zoomAlertDiv.className = 'row1col1 grid-box';
+    }
 }
 
 /**
@@ -223,6 +235,25 @@ function refreshState(){
     xhr.send(JSON.stringify(newModeJson));
 
     state['mode'] = 'off';
+    updateScreen();
+}
+
+/**
+ * Enable or disable the "ON AIR" when a zoom call comes in
+ * @return {undefined}
+ */
+ function toggleZoomAlert(){
+    refreshQuery.abort();
+    const xhr = new XMLHttpRequest();
+
+    if(state['zoom']['alert-active']){
+        xhr.open('DELETE', httpServerAddr + '/alert/zoom');
+    }else{
+        xhr.open('PUT', httpServerAddr + '/alert/zoom');
+    }
+    xhr.send();
+
+    state['zoom']['alert-active'] = !(state['zoom']['alert-active']);
     updateScreen();
 }
 
