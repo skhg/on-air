@@ -29,6 +29,10 @@ jobs:
     - name: checkout
       uses: actions/checkout@v2
 
+    - name: Delete script file
+      run: |
+        rm webapp/run-test-server.sh
+
     - name: Replace version string
       run: |
         sed -i "s/version=latest/version=$GITHUB_SHA/g" webapp/index.html
