@@ -56,7 +56,9 @@ function renderSkeleton(){
     <div class="row3col1 grid-box"></div>
     <div class="row3col2 grid-box"></div>
     <div class="row4col1 grid-box"></div>
-    <div class="row4col2 grid-box"></div>
+    <div class="row4col2 grid-box">
+        <i class="fas fa-cogs"></i>
+    </div>
   </div>
   `;
 
