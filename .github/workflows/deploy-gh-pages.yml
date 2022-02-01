@@ -33,6 +33,27 @@ jobs:
       run: |
         rm webapp/run-test-server.sh
 
+    - name: Production app.js location in index.html
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "app.js"
+          replace: "https://jackhiggins.ie/on-air/app.js"
+          include: "webapp/index.html"
+    
+    - name: Production web root in app.js
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "webRoot = '.'"
+          replace: "webRoot = 'https://jackhiggins.ie/on-air'"
+          include: "webapp/app.js"
+    
+    - name: Production web socket server in app.js
+        uses: jacobtomlinson/gha-find-replace@v2
+        with:
+          find: "webSocketServerAddr =  'on-air.fritz.box'"
+          replace: "webSocketServerAddr = window.location.host"
+          include: "webapp/app.js"
+
     - name: Replace version string
       run: |
         sed -i "s/version=latest/version=$GITHUB_SHA/g" webapp/index.html
