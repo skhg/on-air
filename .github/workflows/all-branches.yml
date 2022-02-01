@@ -22,11 +22,6 @@ jobs:
       - name: Run C++ linter
         run: |
           cpplint --extensions=ino **/*.ino
-      # - name: Validate Swagger docs
-      #   uses: mbowman100/swagger-validator-action@master
-      #   with:
-      #     files: |
-      #       openapi-spec.yaml
       - name: Cleanup
         run: |
           rm -rf node_modules
