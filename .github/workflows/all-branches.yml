@@ -1,7 +1,7 @@
 name: All Branches
 on: push
 jobs:
-  "Validate web app":
+  Validate-web-app:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -28,7 +28,7 @@ jobs:
           rm package.json
           rm yarn.lock
 
-  "Validate Arduino code":
+  Validate-Arduino-code:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
