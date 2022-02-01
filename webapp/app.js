@@ -1,5 +1,7 @@
-let serverAddr;
-let webSocketServerAddr; //todo decide if needed
+const httpServerAddr = 'http://on-air.fritz.box/api';
+const webSocketServerAddr =  'on-air.fritz.box';
+const webRoot = '.';
+
 let refreshQuery;
 let webSocketUrl;
 let state;
@@ -39,9 +41,6 @@ function establishWebSocketConnection() {
  * @return {undefined}
  */
 function renderSkeleton(){
-    const webRoot = 'https://jackhiggins.ie/on-air';
-    // const webRoot = '.';
-
     document.body.innerHTML = `
   <div class="grid-container">
     <div class="row1col1 grid-box">
@@ -87,11 +86,6 @@ function renderSkeleton(){
  * @return {undefined}
  */
 function app(){ // eslint-disable-line no-unused-vars
-    serverAddr = '/api'; //todo fix
-    // serverAddr = 'http://on-air.fritz.box/api';
-    webSocketServerAddr = window.location.host; //todo fix
-    // webSocketServerAddr = 'on-air.fritz.box';
-
     state = {
         'mode': 'off',
         'zoom': {
@@ -180,7 +174,7 @@ function updateScreen(){
  */
 function refreshState(){
     refreshQuery = new XMLHttpRequest();
-    refreshQuery.open('GET', serverAddr + '/status', true);
+    refreshQuery.open('GET', httpServerAddr + '/status', true);
     refreshQuery.onreadystatechange = function(){
         if (refreshQuery.readyState === XMLHttpRequest.DONE) {
             if (refreshQuery.status === 200) {
@@ -204,7 +198,7 @@ function refreshState(){
         "name": "random-pixels"
     };
 
-    xhr.open('PUT', serverAddr + '/mode');
+    xhr.open('PUT', httpServerAddr + '/mode');
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify(newModeJson));
 
@@ -224,7 +218,7 @@ function refreshState(){
         "name": "off"
     };
 
-    xhr.open('PUT', serverAddr + '/mode');
+    xhr.open('PUT', httpServerAddr + '/mode');
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify(newModeJson));
 
