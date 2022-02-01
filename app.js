@@ -43,7 +43,7 @@ function establishWebSocketConnection() {
 function renderSkeleton(){
     document.body.innerHTML = `
   <div class="grid-container">
-    <div class="row1col1 grid-box">
+    <div id="zoom-alert" class="row1col1 grid-box">
         <i class="fas fa-microphone-alt"></i>
     </div>
     <div id="blank-display" class="row1col2 grid-box">
@@ -63,19 +63,19 @@ function renderSkeleton(){
     const appleIcon = document.createElement('link');
     appleIcon.rel = 'apple-touch-icon';
     appleIcon.sizes = '180x180';
-    appleIcon.href = webRoot + '/favicon_io/apple-touch-icon.png?version=fba70920bebe27d74ac92e4b67f7822a14f59f72';
+    appleIcon.href = webRoot + '/favicon_io/apple-touch-icon.png?version=2de1a50b4897e21a21fab8398251bb31f5cc0b0c';
     document.head.appendChild(appleIcon);
 
     const icon = document.createElement('link');
     icon.rel = 'icon';
     icon.type = 'image/png';
-    icon.href = webRoot + '/favicon_io/favicon-32x32.png?version=fba70920bebe27d74ac92e4b67f7822a14f59f72';
+    icon.href = webRoot + '/favicon_io/favicon-32x32.png?version=2de1a50b4897e21a21fab8398251bb31f5cc0b0c';
     document.head.appendChild(icon);
 
     const stylesheet = document.createElement('link');
     stylesheet.rel = 'stylesheet';
     stylesheet.type = 'text/css';
-    stylesheet.href = webRoot + '/style.css?version=fba70920bebe27d74ac92e4b67f7822a14f59f72';
+    stylesheet.href = webRoot + '/style.css?version=2de1a50b4897e21a21fab8398251bb31f5cc0b0c';
     document.head.appendChild(stylesheet);
 
     document.title = "ON AIR";
@@ -101,6 +101,7 @@ function app(){ // eslint-disable-line no-unused-vars
 
     $('random-pixels').addEventListener(eventName, randomPixels);
     $('blank-display').addEventListener(eventName, blankDisplay);
+    $('zoom-alert').addEventListener(eventName, toggleZoomAlert);
 
     webSocketUrl = 'ws://' + webSocketServerAddr + ':81';
     refreshQuery = new XMLHttpRequest();
@@ -152,20 +153,31 @@ function handleWebSocketMessage(event){
 function updateScreen(){
     const randomPixelsDiv = $('random-pixels');
     const blankDisplayDiv = $('blank-display');
+    const zoomAlertDiv = $('zoom-alert');
 
     if(state['mode'] === "random-pixels"){
-        randomPixelsDiv.className = 'row2col1 grid-box active';
+        randomPixelsDiv.className = 'row2col1 grid-box enabled';
     } else {
         randomPixelsDiv.className = 'row2col1 grid-box';
     }
 
     if(state['mode'] === "off"){
-        blankDisplayDiv.className = 'row1col2 grid-box active';
+        blankDisplayDiv.className = 'row1col2 grid-box enabled';
     } else {
         blankDisplayDiv.className = 'row1col2 grid-box';
     }
-    
 
+    if(state['zoom']['alert-active']){
+        zoomAlertDiv.innerHTML = `<i class="fas fa-microphone-alt"></i>`;
+    }else{
+        zoomAlertDiv.innerHTML = `<i class="fas fa-microphone-alt-slash"></i>`;
+    }
+
+    if(state['zoom']['call-in-progress']){
+        zoomAlertDiv.className = 'row1col1 grid-box active'
+    }else{
+        zoomAlertDiv.className = 'row1col1 grid-box';
+    }
 }
 
 /**
@@ -223,6 +235,25 @@ function refreshState(){
     xhr.send(JSON.stringify(newModeJson));
 
     state['mode'] = 'off';
+    updateScreen();
+}
+
+/**
+ * Enable or disable the "ON AIR" when a zoom call comes in
+ * @return {undefined}
+ */
+ function toggleZoomAlert(){
+    refreshQuery.abort();
+    const xhr = new XMLHttpRequest();
+
+    if(state['zoom']['alert-active']){
+        xhr.open('DELETE', httpServerAddr + '/alert/zoom');
+    }else{
+        xhr.open('PUT', httpServerAddr + '/alert/zoom');
+    }
+    xhr.send();
+
+    state['zoom']['alert-active'] = !(state['zoom']['alert-active']);
     updateScreen();
 }
 

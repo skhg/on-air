@@ -23,14 +23,18 @@ body,
 .grid-box {
   background-color: #fff1d0;
   color: #086788;
-  border: 1px solid #f0c808;
+  border: 1px solid #07a0c3;
   font-size: 15vh;
   padding-top: 4vh;
   text-align: center;
 }
 
-.active {
+.enabled {
   background-color: #f0c808;
+  color: #dd1c1a;
+}
+
+.active {
   color: #dd1c1a;
 }
 
