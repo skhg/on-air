@@ -9,6 +9,9 @@ jobs:
       - name: Install Arduino tools
         run: |
           pip install cpplint
+      - name: Run C++ linter
+        run: |
+          cpplint --extensions=ino,h --recursive */*
       - name: Install webapp tools
         run: |
           yarn add eslint
@@ -19,9 +22,6 @@ jobs:
       - name: Run StyleLint checks
         run: |
           yarn run stylelint ./webapp/*.css
-      - name: Run C++ linter
-        run: |
-          cpplint --extensions=ino **/*.ino
       - name: Cleanup
         run: |
           rm -rf node_modules

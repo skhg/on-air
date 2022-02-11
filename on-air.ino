@@ -14,7 +14,8 @@
 #include <ESPAsyncTCP.h>
 #include <WebSocketsServer.h>
 #include <LedControl.h>
-#include "./pixels.h"
+#include "./glyphs.h"
+#include <DS3232RTC.h>
 
 #define LED_DIN 13  // nodemcu v3 pin D7
 #define LED_CS 2  // nodemcu v3 pin D4
@@ -41,7 +42,9 @@ const String METHOD_NOT_ALLOWED_MESSAGE = "Method Not Allowed";
 
 const int SENSOR_READ_INTERVAL_MILLIS = 10000;
 const int RANDOM_PIXEL_INTERVAL_MILLIS = 10;
+const int CLOCK_SEPARATOR_INTERVAL_MILLIS = 1000;
 
+DS3232RTC RTC;
 LedControl lc = LedControl(LED_DIN, LED_CLK, LED_CS, 4);
 WiFiClient WIFI_CLIENT;
 HTTPClient HTTP_CLIENT;
@@ -53,12 +56,17 @@ WebSocketsServer WEB_SOCKET_SERVER(81);
  */
 enum MODES {
   OFF,
-  RANDOM_PIXELS
+  RANDOM_PIXELS,
+  CLOCK
 };
 
+float _clockTemperature = 0.0;
 uint64_t _currentMillis = millis();
 uint64_t _sensorReadMillis = millis();
 uint64_t _randomPixelMillis = millis();
+uint64_t _clockSepMillis = millis();
+boolean _clockSeparatorActive = false;
+
 MODES _activeMode = OFF;
 int _ledBrightness = 1;  // Max 15
 
@@ -77,8 +85,9 @@ void readSensors() {
     _sensorReadMillis = _currentMillis;
 
     // read sensors and set the values as global vars
+    _clockTemperature = RTC.temperature() / 4.;
 
-    sendToWebSocketClients(sensorValuesToJsonString());
+    sendToWebSocketClients(stateJson());
   }
 }
 
@@ -91,7 +100,55 @@ void renderScreen() {
   switch (_activeMode) {
     case OFF: renderBlankScreen(); return;
     case RANDOM_PIXELS: renderRandomPixels(); return;
+    case CLOCK: renderClock(); return;
     default: return;
+  }
+}
+
+void renderClock() {
+  time_t t = now();
+  int currentHour = hour(t);
+  int currentMinute = minute(t);
+
+  int digit1 = currentHour / 10;
+  int digit2 = currentHour % 10;
+
+  int digit3 = currentMinute / 10;
+  int digit4 = currentMinute % 10;
+
+  print8x8(3, getGlyphForInteger(digit1));
+  print8x8(2, getGlyphForInteger(digit2));
+  print8x8(1, getGlyphForInteger(digit3));
+  print8x8(0, getGlyphForInteger(digit4));
+
+  _currentMillis = millis();
+
+  if (_clockSeparatorActive) {  // todo combine with pixel 2 before rendering
+    lc.setLed(2, 2, 7, 1);
+    lc.setLed(2, 5, 7, 1);
+  }
+
+  if (_currentMillis - _clockSepMillis <= CLOCK_SEPARATOR_INTERVAL_MILLIS) {
+    return;
+  }
+
+  _clockSepMillis = _currentMillis;
+  _clockSeparatorActive = !_clockSeparatorActive;
+}
+
+const byte *getGlyphForInteger(int number) {
+  switch (number) {
+    case 0: return GLYPH_NUMBER_0;
+    case 1: return GLYPH_NUMBER_1;
+    case 2: return GLYPH_NUMBER_2;
+    case 3: return GLYPH_NUMBER_3;
+    case 4: return GLYPH_NUMBER_4;
+    case 5: return GLYPH_NUMBER_5;
+    case 6: return GLYPH_NUMBER_6;
+    case 7: return GLYPH_NUMBER_7;
+    case 8: return GLYPH_NUMBER_8;
+    case 9: return GLYPH_NUMBER_9;
+    default: return GLYPH_EMPTY;
   }
 }
 
@@ -100,10 +157,10 @@ void renderBlankScreen() {
 }
 
 void renderOnAirSign() {
-  print8x8(3, PIXEL_ON_AIR_BLOCK_0);
-  print8x8(2, PIXEL_ON_AIR_BLOCK_1);
-  print8x8(1, PIXEL_ON_AIR_BLOCK_2);
-  print8x8(0, PIXEL_ON_AIR_BLOCK_3);
+  print8x8(3, GLYPH_ON_AIR_BLOCK_0);
+  print8x8(2, GLYPH_ON_AIR_BLOCK_1);
+  print8x8(1, GLYPH_ON_AIR_BLOCK_2);
+  print8x8(0, GLYPH_ON_AIR_BLOCK_3);
 }
 
 void renderRandomPixels() {
@@ -127,14 +184,6 @@ void print8x8(int screenId, const byte pixels[]) {
   for (int i = 0; i < 8; i++) {
     lc.setRow(screenId, i, pixels[i]);
   }
-}
-
-String sensorValuesToJsonString() {
-  String content;
-  StaticJsonDocument<JSON_OBJECT_SIZE(4)> sensorsJson;
-  sensorsJson["field-name"] = 0;
-  serializeJson(sensorsJson, content);
-  return content;
 }
 
 void httpRootEventHandler() {
@@ -179,8 +228,9 @@ void statusHttpEventHandler() {
 String stateJson() {
   String jsonContent;
 
-  StaticJsonDocument<96> statusJson;
+  StaticJsonDocument<128> statusJson;
   statusJson["mode"] = modeToString(_activeMode);
+  statusJson["temperature"] = _clockTemperature;
 
   JsonObject zoomJson = statusJson.createNestedObject("zoom");
   zoomJson["alert-active"] = _zoomAlertActive;
@@ -217,6 +267,8 @@ void modeHttpEventHandler() {
 MODES stringToMode(String mode) {
   if (mode == "random-pixels") {
     return RANDOM_PIXELS;
+  } else if (mode == "clock") {
+    return CLOCK;
   } else {
     return OFF;
   }
@@ -226,6 +278,7 @@ String modeToString(MODES mode) {
   switch (mode) {
     case OFF: return "off";
     case RANDOM_PIXELS: return "random-pixels";
+    case CLOCK: return "clock";
     default: return "Unknown";
   }
 }
@@ -289,6 +342,10 @@ void clearScreen() {
 void setup(void) {
   randomSeed(analogRead(0));
   Serial.begin(115200);
+
+  setSyncProvider(RTC.get);
+
+  // todo handle RTC initialisation failure
 
   clearScreen();
 
