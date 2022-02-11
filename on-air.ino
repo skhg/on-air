@@ -64,7 +64,7 @@ float _clockTemperature = 0.0;
 uint64_t _currentMillis = millis();
 uint64_t _sensorReadMillis = millis();
 uint64_t _randomPixelMillis = millis();
-uint64_t _clockSeparatorMillis = millis();
+uint64_t _clockSepMillis = millis();
 boolean _clockSeparatorActive = false;
 
 MODES _activeMode = OFF;
@@ -86,7 +86,7 @@ void readSensors() {
 
     // read sensors and set the values as global vars
     _clockTemperature = RTC.temperature() / 4.;
-  
+
     sendToWebSocketClients(sensorValuesToJsonString());
   }
 }
@@ -105,7 +105,7 @@ void renderScreen() {
   }
 }
 
-void renderClock() {  
+void renderClock() {
   time_t t = now();
   int currentHour = hour(t);
   int currentMinute = minute(t);
@@ -123,21 +123,21 @@ void renderClock() {
 
   _currentMillis = millis();
 
-  if(_clockSeparatorActive){ //todo combine this with pixel 2 before rendering
+  if (_clockSeparatorActive) {  // todo combine with pixel 2 before rendering
     lc.setLed(2, 2, 7, 1);
     lc.setLed(2, 5, 7, 1);
   }
-  
-  if (_currentMillis - _clockSeparatorMillis <= CLOCK_SEPARATOR_INTERVAL_MILLIS) {
+
+  if (_currentMillis - _clockSepMillis <= CLOCK_SEPARATOR_INTERVAL_MILLIS) {
     return;
   }
 
-  _clockSeparatorMillis = _currentMillis;
+  _clockSepMillis = _currentMillis;
   _clockSeparatorActive = !_clockSeparatorActive;
 }
 
 const byte *getPixelForInteger(int number) {
-  switch(number){
+  switch (number) {
     case 0: return PIXEL_NUMBER_0;
     case 1: return PIXEL_NUMBER_1;
     case 2: return PIXEL_NUMBER_2;
@@ -274,7 +274,7 @@ void modeHttpEventHandler() {
 MODES stringToMode(String mode) {
   if (mode == "random-pixels") {
     return RANDOM_PIXELS;
-  } else if(mode == "clock") {
+  } else if (mode == "clock") {
     return CLOCK;
   } else {
     return OFF;
@@ -352,8 +352,8 @@ void setup(void) {
 
   setSyncProvider(RTC.get);
 
-  //todo handle RTC initialisation failure
-  
+  // todo handle RTC initialisation failure
+
   clearScreen();
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
