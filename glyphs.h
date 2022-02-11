@@ -1,6 +1,15 @@
-//Inspired by http://static.fontstruct.com/fontstructions/show/1888398/fs-tahoma-8px-9
+/**
+ * Copyright 2022 Jack Higgins : https://github.com/skhg
+ * All components of this project are licensed under the MIT License.
+ * See the LICENSE file for details.
+ */
 
-const byte PIXEL_ON_AIR_BLOCK_0[] = {
+// Inspired by http://static.fontstruct.com/fontstructions/show/1888398/fs-tahoma-8px-9
+
+#ifndef GLYPHS_H_
+#define GLYPHS_H_
+
+const byte GLYPH_ON_AIR_BLOCK_0[] = {
   B01110011,
   B10001011,
   B10001010,
@@ -11,7 +20,7 @@ const byte PIXEL_ON_AIR_BLOCK_0[] = {
   B01110010
 };
 
-const byte PIXEL_ON_AIR_BLOCK_1[] = {
+const byte GLYPH_ON_AIR_BLOCK_1[] = {
   B00010000,
   B00010000,
   B10010000,
@@ -22,7 +31,7 @@ const byte PIXEL_ON_AIR_BLOCK_1[] = {
   B00110000
 };
 
-const byte PIXEL_ON_AIR_BLOCK_2[] = {
+const byte GLYPH_ON_AIR_BLOCK_2[] = {
   B00110001,
   B00110000,
   B01001000,
@@ -33,7 +42,7 @@ const byte PIXEL_ON_AIR_BLOCK_2[] = {
   B10000101
 };
 
-const byte PIXEL_ON_AIR_BLOCK_3[] = {
+const byte GLYPH_ON_AIR_BLOCK_3[] = {
   B11011110,
   B10010001,
   B10010001,
@@ -44,7 +53,7 @@ const byte PIXEL_ON_AIR_BLOCK_3[] = {
   B11010001
 };
 
-const byte PIXEL_EMPTY[] = {
+const byte GLYPH_EMPTY[] = {
   B00000000,
   B00000000,
   B00000000,
@@ -55,7 +64,7 @@ const byte PIXEL_EMPTY[] = {
   B00000000
 };
 
-const byte PIXEL_NUMBER_0[] = {
+const byte GLYPH_NUMBER_0[] = {
   B00111000,
   B01000100,
   B01000100,
@@ -66,7 +75,7 @@ const byte PIXEL_NUMBER_0[] = {
   B00111000
 };
 
-const byte PIXEL_NUMBER_1[] = {
+const byte GLYPH_NUMBER_1[] = {
   B00010000,
   B00110000,
   B00010000,
@@ -77,7 +86,7 @@ const byte PIXEL_NUMBER_1[] = {
   B00111000
 };
 
-const byte PIXEL_NUMBER_2[] = {
+const byte GLYPH_NUMBER_2[] = {
   B00111000,
   B01000100,
   B00000100,
@@ -88,7 +97,7 @@ const byte PIXEL_NUMBER_2[] = {
   B01111100
 };
 
-const byte PIXEL_NUMBER_3[] = {
+const byte GLYPH_NUMBER_3[] = {
   B00111000,
   B01000100,
   B00000100,
@@ -99,7 +108,7 @@ const byte PIXEL_NUMBER_3[] = {
   B00111000
 };
 
-const byte PIXEL_NUMBER_4[] = {
+const byte GLYPH_NUMBER_4[] = {
   B00001000,
   B00011000,
   B00101000,
@@ -110,7 +119,7 @@ const byte PIXEL_NUMBER_4[] = {
   B00001000
 };
 
-const byte PIXEL_NUMBER_5[] = {
+const byte GLYPH_NUMBER_5[] = {
   B01111100,
   B01000000,
   B01000000,
@@ -121,7 +130,7 @@ const byte PIXEL_NUMBER_5[] = {
   B00111000
 };
 
-const byte PIXEL_NUMBER_6[] = {
+const byte GLYPH_NUMBER_6[] = {
   B00011000,
   B00100000,
   B01000000,
@@ -132,7 +141,7 @@ const byte PIXEL_NUMBER_6[] = {
   B00111000
 };
 
-const byte PIXEL_NUMBER_7[] = {
+const byte GLYPH_NUMBER_7[] = {
   B01111100,
   B00000100,
   B00001000,
@@ -143,7 +152,7 @@ const byte PIXEL_NUMBER_7[] = {
   B00100000
 };
 
-const byte PIXEL_NUMBER_8[] = {
+const byte GLYPH_NUMBER_8[] = {
   B00111000,
   B01000100,
   B01000100,
@@ -154,7 +163,7 @@ const byte PIXEL_NUMBER_8[] = {
   B00111000
 };
 
-const byte PIXEL_NUMBER_9[] = {
+const byte GLYPH_NUMBER_9[] = {
   B00111000,
   B01000100,
   B01000100,
@@ -164,3 +173,5 @@ const byte PIXEL_NUMBER_9[] = {
   B00001000,
   B00110000
 };
+
+#endif  // GLYPHS_H_

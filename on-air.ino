@@ -14,7 +14,7 @@
 #include <ESPAsyncTCP.h>
 #include <WebSocketsServer.h>
 #include <LedControl.h>
-#include "./pixels.h"
+#include "./glyphs.h"
 #include <DS3232RTC.h>
 
 #define LED_DIN 13  // nodemcu v3 pin D7
@@ -116,10 +116,10 @@ void renderClock() {
   int digit3 = currentMinute / 10;
   int digit4 = currentMinute % 10;
 
-  print8x8(3, getPixelForInteger(digit1));
-  print8x8(2, getPixelForInteger(digit2));
-  print8x8(1, getPixelForInteger(digit3));
-  print8x8(0, getPixelForInteger(digit4));
+  print8x8(3, getGlyphForInteger(digit1));
+  print8x8(2, getGlyphForInteger(digit2));
+  print8x8(1, getGlyphForInteger(digit3));
+  print8x8(0, getGlyphForInteger(digit4));
 
   _currentMillis = millis();
 
@@ -136,19 +136,19 @@ void renderClock() {
   _clockSeparatorActive = !_clockSeparatorActive;
 }
 
-const byte *getPixelForInteger(int number) {
+const byte *getGlyphForInteger(int number) {
   switch (number) {
-    case 0: return PIXEL_NUMBER_0;
-    case 1: return PIXEL_NUMBER_1;
-    case 2: return PIXEL_NUMBER_2;
-    case 3: return PIXEL_NUMBER_3;
-    case 4: return PIXEL_NUMBER_4;
-    case 5: return PIXEL_NUMBER_5;
-    case 6: return PIXEL_NUMBER_6;
-    case 7: return PIXEL_NUMBER_7;
-    case 8: return PIXEL_NUMBER_8;
-    case 9: return PIXEL_NUMBER_9;
-    default: return PIXEL_EMPTY;
+    case 0: return GLYPH_NUMBER_0;
+    case 1: return GLYPH_NUMBER_1;
+    case 2: return GLYPH_NUMBER_2;
+    case 3: return GLYPH_NUMBER_3;
+    case 4: return GLYPH_NUMBER_4;
+    case 5: return GLYPH_NUMBER_5;
+    case 6: return GLYPH_NUMBER_6;
+    case 7: return GLYPH_NUMBER_7;
+    case 8: return GLYPH_NUMBER_8;
+    case 9: return GLYPH_NUMBER_9;
+    default: return GLYPH_EMPTY;
   }
 }
 
@@ -157,10 +157,10 @@ void renderBlankScreen() {
 }
 
 void renderOnAirSign() {
-  print8x8(3, PIXEL_ON_AIR_BLOCK_0);
-  print8x8(2, PIXEL_ON_AIR_BLOCK_1);
-  print8x8(1, PIXEL_ON_AIR_BLOCK_2);
-  print8x8(0, PIXEL_ON_AIR_BLOCK_3);
+  print8x8(3, GLYPH_ON_AIR_BLOCK_0);
+  print8x8(2, GLYPH_ON_AIR_BLOCK_1);
+  print8x8(1, GLYPH_ON_AIR_BLOCK_2);
+  print8x8(0, GLYPH_ON_AIR_BLOCK_3);
 }
 
 void renderRandomPixels() {
