@@ -11,7 +11,7 @@ jobs:
           pip install cpplint
       - name: Run C++ linter
         run: |
-          cpplint --extensions=ino,h **/*
+          cpplint --extensions=ino,h --recursive */*
       - name: Install webapp tools
         run: |
           yarn add eslint
