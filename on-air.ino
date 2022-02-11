@@ -15,6 +15,8 @@
 #include <WebSocketsServer.h>
 #include <LedControl.h>
 #include "./pixels.h"
+#include <DS3232RTC.h>
+#include <Streaming.h> //todo remove
 
 #define LED_DIN 13  // nodemcu v3 pin D7
 #define LED_CS 2  // nodemcu v3 pin D4
@@ -42,6 +44,7 @@ const String METHOD_NOT_ALLOWED_MESSAGE = "Method Not Allowed";
 const int SENSOR_READ_INTERVAL_MILLIS = 10000;
 const int RANDOM_PIXEL_INTERVAL_MILLIS = 10;
 
+DS3232RTC RTC;
 LedControl lc = LedControl(LED_DIN, LED_CLK, LED_CS, 4);
 WiFiClient WIFI_CLIENT;
 HTTPClient HTTP_CLIENT;
@@ -53,13 +56,15 @@ WebSocketsServer WEB_SOCKET_SERVER(81);
  */
 enum MODES {
   OFF,
-  RANDOM_PIXELS
+  RANDOM_PIXELS,
+  CLOCK
 };
 
+float _clockTemperature = 0.0;
 uint64_t _currentMillis = millis();
 uint64_t _sensorReadMillis = millis();
 uint64_t _randomPixelMillis = millis();
-MODES _activeMode = OFF;
+MODES _activeMode = CLOCK;
 int _ledBrightness = 1;  // Max 15
 
 bool _zoomAlertActive = true;
@@ -77,7 +82,8 @@ void readSensors() {
     _sensorReadMillis = _currentMillis;
 
     // read sensors and set the values as global vars
-
+    _clockTemperature = RTC.temperature() / 4.;
+  
     sendToWebSocketClients(sensorValuesToJsonString());
   }
 }
@@ -91,9 +97,61 @@ void renderScreen() {
   switch (_activeMode) {
     case OFF: renderBlankScreen(); return;
     case RANDOM_PIXELS: renderRandomPixels(); return;
+    case CLOCK: renderClock(); return;
     default: return;
   }
 }
+
+void renderClock() {
+  clearScreen();
+
+  _currentMillis = millis();
+
+  if (_currentMillis - _randomPixelMillis <= RANDOM_PIXEL_INTERVAL_MILLIS) {
+    return;
+  }
+
+  _randomPixelMillis = _currentMillis;
+  
+  time_t t = now();
+
+  //todo use this to actually draw to the screen
+  printDateTime(t);
+  float f = _clockTemperature * 9. / 5. + 32.;
+  Serial << F("  ") << _clockTemperature << F(" C  ") << f << F(" F");
+  Serial << endl;
+}
+
+// print date and time to Serial
+void printDateTime(time_t t) {
+    printDate(t);
+    Serial << ' ';
+    printTime(t);
+}
+
+// print time to Serial
+void printTime(time_t t) {
+    printI00(hour(t), ':');
+    printI00(minute(t), ':');
+    printI00(second(t), ' ');
+}
+
+// print date to Serial
+void printDate(time_t t) {
+    printI00(day(t), 0);
+    Serial << monthShortStr(month(t)) << _DEC(year(t));
+}
+
+// Print an integer in "00" format (with leading zero),
+// followed by a delimiter character to Serial.
+// Input value assumed to be between 0 and 99.
+void printI00(int val, char delim) {
+    if (val < 10) Serial << '0';
+    Serial << _DEC(val);
+    if (delim > 0) Serial << delim;
+    return;
+}
+
 
 void renderBlankScreen() {
   clearScreen();
@@ -290,6 +348,10 @@ void setup(void) {
   randomSeed(analogRead(0));
   Serial.begin(115200);
 
+  setSyncProvider(RTC.get);
+
+  //todo handle RTC initialisation failure
+  
   clearScreen();
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
