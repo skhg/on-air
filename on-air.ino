@@ -16,7 +16,6 @@
 #include <LedControl.h>
 #include "./pixels.h"
 #include <DS3232RTC.h>
-#include <Streaming.h> //todo remove
 
 #define LED_DIN 13  // nodemcu v3 pin D7
 #define LED_CS 2  // nodemcu v3 pin D4
