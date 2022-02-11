@@ -172,7 +172,6 @@ void print8x8(int screenId, const byte pixels1[], const byte pixels2[]) {
       bitWrite(combo, j, outcome);
     }
     
-    
     lc.setRow(screenId, i, combo);
   }
 }
