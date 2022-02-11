@@ -43,6 +43,7 @@ const String METHOD_NOT_ALLOWED_MESSAGE = "Method Not Allowed";
 
 const int SENSOR_READ_INTERVAL_MILLIS = 10000;
 const int RANDOM_PIXEL_INTERVAL_MILLIS = 10;
+const int CLOCK_SEPARATOR_INTERVAL_MILLIS = 1000;
 
 DS3232RTC RTC;
 LedControl lc = LedControl(LED_DIN, LED_CLK, LED_CS, 4);
@@ -64,6 +65,9 @@ float _clockTemperature = 0.0;
 uint64_t _currentMillis = millis();
 uint64_t _sensorReadMillis = millis();
 uint64_t _randomPixelMillis = millis();
+uint64_t _clockSeparatorMillis = millis();
+boolean _clockSeparatorActive = false;
+
 MODES _activeMode = OFF;
 int _ledBrightness = 1;  // Max 15
 
@@ -102,56 +106,52 @@ void renderScreen() {
   }
 }
 
-void renderClock() {
-  clearScreen();
+void renderClock() {  
+  time_t t = now();
+  int currentHour = hour(t);
+  int currentMinute = minute(t);
+
+  int digit1 = currentHour / 10;
+  int digit2 = currentHour % 10;
+
+  int digit3 = currentMinute / 10;
+  int digit4 = currentMinute % 10;
+
+  print8x8(3, getPixelForInteger(digit1));
+  print8x8(2, getPixelForInteger(digit2));
+  print8x8(1, getPixelForInteger(digit3));
+  print8x8(0, getPixelForInteger(digit4));
 
   _currentMillis = millis();
 
-  if (_currentMillis - _randomPixelMillis <= RANDOM_PIXEL_INTERVAL_MILLIS) {
+  if(_clockSeparatorActive){ //todo combine this with pixel 2 before rendering
+    lc.setLed(2, 2, 7, 1);
+    lc.setLed(2, 5, 7, 1);
+  }
+  
+  if (_currentMillis - _clockSeparatorMillis <= CLOCK_SEPARATOR_INTERVAL_MILLIS) {
     return;
   }
 
-  _randomPixelMillis = _currentMillis;
-  
-  time_t t = now();
-
-  //todo use this to actually draw to the screen
-  printDateTime(t);
-  float f = _clockTemperature * 9. / 5. + 32.;
-  Serial << F("  ") << _clockTemperature << F(" C  ") << f << F(" F");
-  Serial << endl;
+  _clockSeparatorMillis = _currentMillis;
+  _clockSeparatorActive = !_clockSeparatorActive;
 }
 
-// print date and time to Serial
-void printDateTime(time_t t) {
-    printDate(t);
-    Serial << ' ';
-    printTime(t);
+const byte *getPixelForInteger(int number) {
+  switch(number){
+    case 0: return PIXEL_NUMBER_0;
+    case 1: return PIXEL_NUMBER_1;
+    case 2: return PIXEL_NUMBER_2;
+    case 3: return PIXEL_NUMBER_3;
+    case 4: return PIXEL_NUMBER_4;
+    case 5: return PIXEL_NUMBER_5;
+    case 6: return PIXEL_NUMBER_6;
+    case 7: return PIXEL_NUMBER_7;
+    case 8: return PIXEL_NUMBER_8;
+    case 9: return PIXEL_NUMBER_9;
+    default: return PIXEL_EMPTY;
+  }
 }
-
-// print time to Serial
-void printTime(time_t t) {
-    printI00(hour(t), ':');
-    printI00(minute(t), ':');
-    printI00(second(t), ' ');
-}
-
-// print date to Serial
-void printDate(time_t t) {
-    printI00(day(t), 0);
-    Serial << monthShortStr(month(t)) << _DEC(year(t));
-}
-
-// Print an integer in "00" format (with leading zero),
-// followed by a delimiter character to Serial.
-// Input value assumed to be between 0 and 99.
-void printI00(int val, char delim) {
-    if (val < 10) Serial << '0';
-    Serial << _DEC(val);
-    if (delim > 0) Serial << delim;
-    return;
-}
-
 
 void renderBlankScreen() {
   clearScreen();
