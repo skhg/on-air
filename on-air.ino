@@ -117,16 +117,11 @@ void renderClock() {
   int digit4 = currentMinute % 10;
 
   print8x8(3, getGlyphForInteger(digit1));
-  print8x8(2, getGlyphForInteger(digit2));
+  print8x8(2, getGlyphForInteger(digit2), _clockSeparatorActive ? GLYPH_CLOCK_SEPARATOR : GLYPH_EMPTY);
   print8x8(1, getGlyphForInteger(digit3));
   print8x8(0, getGlyphForInteger(digit4));
 
   _currentMillis = millis();
-
-  if (_clockSeparatorActive) {  // todo combine with pixel 2 before rendering
-    lc.setLed(2, 2, 7, 1);
-    lc.setLed(2, 5, 7, 1);
-  }
 
   if (_currentMillis - _clockSepMillis <= CLOCK_SEPARATOR_INTERVAL_MILLIS) {
     return;
@@ -134,22 +129,6 @@ void renderClock() {
 
   _clockSepMillis = _currentMillis;
   _clockSeparatorActive = !_clockSeparatorActive;
-}
-
-const byte *getGlyphForInteger(int number) {
-  switch (number) {
-    case 0: return GLYPH_NUMBER_0;
-    case 1: return GLYPH_NUMBER_1;
-    case 2: return GLYPH_NUMBER_2;
-    case 3: return GLYPH_NUMBER_3;
-    case 4: return GLYPH_NUMBER_4;
-    case 5: return GLYPH_NUMBER_5;
-    case 6: return GLYPH_NUMBER_6;
-    case 7: return GLYPH_NUMBER_7;
-    case 8: return GLYPH_NUMBER_8;
-    case 9: return GLYPH_NUMBER_9;
-    default: return GLYPH_EMPTY;
-  }
 }
 
 void renderBlankScreen() {
@@ -180,9 +159,20 @@ void renderRandomPixels() {
   lc.setLed(screen, row, column, state);
 }
 
-void print8x8(int screenId, const byte pixels[]) {
+void print8x8(int screenId, const byte pixels1[]) {
+  print8x8(screenId, pixels1, GLYPH_EMPTY);
+}
+
+void print8x8(int screenId, const byte pixels1[], const byte pixels2[]) {
   for (int i = 0; i < 8; i++) {
-    lc.setRow(screenId, i, pixels[i]);
+    byte combo = B00000000;
+
+    for(int j=0; j < 8; j++) {
+      boolean outcome = bitRead(pixels1[i], j) || bitRead(pixels2[i], j);
+      bitWrite(combo, j, outcome);
+    }
+    
+    lc.setRow(screenId, i, combo);
   }
 }
 
