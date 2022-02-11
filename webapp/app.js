@@ -90,6 +90,7 @@ function renderSkeleton(){
 function app(){ // eslint-disable-line no-unused-vars
     state = {
         'mode': 'off',
+        'temperature': 0.0,
         'zoom': {
             'alert-active': false,
             'call-in-progress': false

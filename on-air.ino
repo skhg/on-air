@@ -87,7 +87,7 @@ void readSensors() {
     // read sensors and set the values as global vars
     _clockTemperature = RTC.temperature() / 4.;
 
-    sendToWebSocketClients(sensorValuesToJsonString());
+    sendToWebSocketClients(stateJson());
   }
 }
 
@@ -186,14 +186,6 @@ void print8x8(int screenId, const byte pixels[]) {
   }
 }
 
-String sensorValuesToJsonString() {
-  String content;
-  StaticJsonDocument<JSON_OBJECT_SIZE(4)> sensorsJson;
-  sensorsJson["field-name"] = 0;
-  serializeJson(sensorsJson, content);
-  return content;
-}
-
 void httpRootEventHandler() {
   if (HTTP_SERVER.method() != HTTP_GET) {
     HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
@@ -236,8 +228,9 @@ void statusHttpEventHandler() {
 String stateJson() {
   String jsonContent;
 
-  StaticJsonDocument<96> statusJson;
+  StaticJsonDocument<128> statusJson;
   statusJson["mode"] = modeToString(_activeMode);
+  statusJson["temperature"] = _clockTemperature;
 
   JsonObject zoomJson = statusJson.createNestedObject("zoom");
   zoomJson["alert-active"] = _zoomAlertActive;
