@@ -52,7 +52,9 @@ function renderSkeleton(){
     <div id="random-pixels" class="row2col1 grid-box">
         <i class="fas fa-braille"></i>
     </div>
-    <div class="row2col2 grid-box"></div>
+    <div id="clock" class="row2col2 grid-box">
+        <i class="far fa-clock"></i>
+    </div>
     <div class="row3col1 grid-box"></div>
     <div class="row3col2 grid-box"></div>
     <div class="row4col1 grid-box"></div>
@@ -63,19 +65,19 @@ function renderSkeleton(){
     const appleIcon = document.createElement('link');
     appleIcon.rel = 'apple-touch-icon';
     appleIcon.sizes = '180x180';
-    appleIcon.href = webRoot + '/favicon_io/apple-touch-icon.png?version=2de1a50b4897e21a21fab8398251bb31f5cc0b0c';
+    appleIcon.href = webRoot + '/favicon_io/apple-touch-icon.png?version=2c5a55643b8e8271d2ac306477333a9998660fab';
     document.head.appendChild(appleIcon);
 
     const icon = document.createElement('link');
     icon.rel = 'icon';
     icon.type = 'image/png';
-    icon.href = webRoot + '/favicon_io/favicon-32x32.png?version=2de1a50b4897e21a21fab8398251bb31f5cc0b0c';
+    icon.href = webRoot + '/favicon_io/favicon-32x32.png?version=2c5a55643b8e8271d2ac306477333a9998660fab';
     document.head.appendChild(icon);
 
     const stylesheet = document.createElement('link');
     stylesheet.rel = 'stylesheet';
     stylesheet.type = 'text/css';
-    stylesheet.href = webRoot + '/style.css?version=2de1a50b4897e21a21fab8398251bb31f5cc0b0c';
+    stylesheet.href = webRoot + '/style.css?version=2c5a55643b8e8271d2ac306477333a9998660fab';
     document.head.appendChild(stylesheet);
 
     document.title = "ON AIR";
@@ -88,6 +90,7 @@ function renderSkeleton(){
 function app(){ // eslint-disable-line no-unused-vars
     state = {
         'mode': 'off',
+        'temperature': 0.0,
         'zoom': {
             'alert-active': false,
             'call-in-progress': false
@@ -100,6 +103,7 @@ function app(){ // eslint-disable-line no-unused-vars
     const eventName = supportsTouch ? 'touchend' : 'click';
 
     $('random-pixels').addEventListener(eventName, randomPixels);
+    $('clock').addEventListener(eventName, clock);
     $('blank-display').addEventListener(eventName, blankDisplay);
     $('zoom-alert').addEventListener(eventName, toggleZoomAlert);
 
@@ -152,8 +156,15 @@ function handleWebSocketMessage(event){
  */
 function updateScreen(){
     const randomPixelsDiv = $('random-pixels');
+    const clockDiv = $('clock');
     const blankDisplayDiv = $('blank-display');
     const zoomAlertDiv = $('zoom-alert');
+
+    if(state['mode'] === "clock"){
+        clockDiv.className = 'row2col2 grid-box enabled';
+    } else {
+        clockDiv.className = 'row2col2 grid-box';
+    }
 
     if(state['mode'] === "random-pixels"){
         randomPixelsDiv.className = 'row2col1 grid-box enabled';
@@ -215,6 +226,26 @@ function refreshState(){
     xhr.send(JSON.stringify(newModeJson));
 
     state['mode'] = 'random-pixels';
+    updateScreen();
+}
+
+/**
+ * control over the "Clock" mode
+ * @return {undefined}
+ */
+ function clock(){
+    refreshQuery.abort();
+    const xhr = new XMLHttpRequest();
+    
+    const newModeJson = {
+        "name": "clock"
+    };
+
+    xhr.open('PUT', httpServerAddr + '/mode');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify(newModeJson));
+
+    state['mode'] = 'clock';
     updateScreen();
 }
 
