@@ -53,6 +53,17 @@ const byte GLYPH_ON_AIR_BLOCK_3[] = {
   B11010001
 };
 
+const byte GLYPH_CLOCK_SEPARATOR[] = {
+  B00000000,
+  B00000000,
+  B00000001,
+  B00000000,
+  B00000000,
+  B00000001,
+  B00000000,
+  B00000000
+};
+
 const byte GLYPH_EMPTY[] = {
   B00000000,
   B00000000,
@@ -173,5 +184,21 @@ const byte GLYPH_NUMBER_9[] = {
   B00001000,
   B00110000
 };
+
+const byte *getGlyphForInteger(int number) {
+  switch (number) {
+    case 0: return GLYPH_NUMBER_0;
+    case 1: return GLYPH_NUMBER_1;
+    case 2: return GLYPH_NUMBER_2;
+    case 3: return GLYPH_NUMBER_3;
+    case 4: return GLYPH_NUMBER_4;
+    case 5: return GLYPH_NUMBER_5;
+    case 6: return GLYPH_NUMBER_6;
+    case 7: return GLYPH_NUMBER_7;
+    case 8: return GLYPH_NUMBER_8;
+    case 9: return GLYPH_NUMBER_9;
+    default: return GLYPH_EMPTY;
+  }
+}
 
 #endif  // GLYPHS_H_
