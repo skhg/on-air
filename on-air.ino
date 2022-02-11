@@ -64,7 +64,7 @@ float _clockTemperature = 0.0;
 uint64_t _currentMillis = millis();
 uint64_t _sensorReadMillis = millis();
 uint64_t _randomPixelMillis = millis();
-MODES _activeMode = CLOCK;
+MODES _activeMode = OFF;
 int _ledBrightness = 1;  // Max 15
 
 bool _zoomAlertActive = true;
@@ -275,6 +275,8 @@ void modeHttpEventHandler() {
 MODES stringToMode(String mode) {
   if (mode == "random-pixels") {
     return RANDOM_PIXELS;
+  } else if(mode == "clock") {
+    return CLOCK;
   } else {
     return OFF;
   }
@@ -284,6 +286,7 @@ String modeToString(MODES mode) {
   switch (mode) {
     case OFF: return "off";
     case RANDOM_PIXELS: return "random-pixels";
+    case CLOCK: return "clock";
     default: return "Unknown";
   }
 }
