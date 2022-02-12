@@ -64,8 +64,6 @@ float _clockTemperature = 0.0;
 uint64_t _currentMillis = millis();
 uint64_t _sensorReadMillis = millis();
 uint64_t _randomPixelMillis = millis();
-uint64_t _clockSepMillis = millis();
-boolean _clockSeparatorActive = false;
 
 MODES _activeMode = OFF;
 int _ledBrightness = 1;  // Max 15
@@ -109,6 +107,7 @@ void renderClock() {
   time_t t = now();
   int currentHour = hour(t);
   int currentMinute = minute(t);
+  int currentSecond = second(t);
 
   int digit1 = currentHour / 10;
   int digit2 = currentHour % 10;
@@ -117,18 +116,9 @@ void renderClock() {
   int digit4 = currentMinute % 10;
 
   print8x8(3, getGlyphForInteger(digit1));
-  print8x8(2, getGlyphForInteger(digit2), _clockSeparatorActive ? GLYPH_CLOCK_SEPARATOR : GLYPH_EMPTY);
+  print8x8(2, getGlyphForInteger(digit2), currentSecond % 2 == 0 ? GLYPH_CLOCK_SEPARATOR : GLYPH_EMPTY);
   print8x8(1, getGlyphForInteger(digit3));
   print8x8(0, getGlyphForInteger(digit4));
-
-  _currentMillis = millis();
-
-  if (_currentMillis - _clockSepMillis <= CLOCK_SEPARATOR_INTERVAL_MILLIS) {
-    return;
-  }
-
-  _clockSepMillis = _currentMillis;
-  _clockSeparatorActive = !_clockSeparatorActive;
 }
 
 void renderBlankScreen() {
