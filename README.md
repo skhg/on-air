@@ -41,7 +41,14 @@ stuff to mention
 ## Zoom integration
 Originally I wanted to use Zoom's webhook API to send messages to a gateway API, and then pass these on to the on-air sign. However, it turned out to be easier to use the fantastic [pyzoomproc](https://github.com/darrenpmeyer/pyzoomproc) utility, which runs on my work laptop and triggers [curl](https://github.com/curl/curl) to hit the appropriate endpoints on my sign.
 
-## Controller webapp
+## Remote control webapp
+I based the design for the remote control application on the one I made for my [traffic light](https://github.com/skhg/traffic-light-controller/). It's pure JS/CSS with the only external dependency on [FontAwesome](https://fontawesome.com/) for icons.
+
+**todo insert a screenshot of the webapp**
+
+It's hosted on GitHub pages so all the on-air sign has to do is proxy the initial request to load `index.html`
+
+Updates to the sign state are shared via Websocket to all connected clients. Requests to change state are provided by the REST endpoints mentioned above.
 
 ## Next steps and improvements
 Some feature requests i've heard already:
