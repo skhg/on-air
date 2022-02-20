@@ -23,11 +23,12 @@ Electronics:
 Case:
 * 5mm darkened perspex / acrylic
 * Nuts and bolts
-* 7mm MDF board
+* 7mm MDF board (sourced from leftover IKEA shelving)
 
 Tools:
 * Jigsaw
 * Jigsaw table
+* Drill
 
 ## Design, build and test
 
