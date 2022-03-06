@@ -66,7 +66,7 @@ Everything is mounted on a breadboard and wired to that. There's plenty of space
 <i>Breadboard layout: image generated from <a href="images/assembly.fzz">fritzing</a> file</i><br/><br/>
 
 <img src="images/logical_bb.png"/>
-<i>Component layout: image generated from <a href="images/logical.fzz">fritzing</a> file</i>
+<i>Component layout: image generated from <a href="images/logical.fzz">fritzing</a> file</i><br/><br/>
 
 The microcontroller is USB powered, so no need for additional cabling to VIN.
 
