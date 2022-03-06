@@ -1,0 +1,89 @@
+openapi: 3.0.0
+info:
+  title: On Air sign API
+  version: 1.0.0
+servers:
+  - url: http://on-air
+tags:
+  - name: Mode
+  - name: Alert > Zoom
+  - name: Alert > Zoom > Call
+paths:
+  /api/mode:
+    delete:
+      tags:
+        - Mode
+      summary: Blank
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    put:
+      tags:
+        - Mode
+      summary: Clock
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                name: clock
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/alert/zoom/call:
+    put:
+      tags:
+        - Alert > Zoom > Call
+      summary: Start
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Alert > Zoom > Call
+      summary: End
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/alert/zoom:
+    put:
+      tags:
+        - Alert > Zoom
+      summary: Enable
+      requestBody:
+        content: {}
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+    delete:
+      tags:
+        - Alert > Zoom
+      summary: Disable
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
+  /api/status:
+    get:
+      tags:
+        - default
+      summary: status
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json: {}
