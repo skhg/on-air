@@ -35,20 +35,20 @@ Tools:
 * Drill
 
 ## Design, build and test
-<img src="images/prototype.jpeg" width="50%" align="right"/>Prototyping the electronics came first, as usual. I hadn't worked with a large LED pixel array before, so this was the first thing I wanted to get right. With the `LedControl` library this is actually quite easy!
+<img src="images/prototype.jpeg" width="33%" align="right"/>Prototyping the electronics came first, as usual. I hadn't worked with a large LED pixel array before, so this was the first thing I wanted to get right. With the `LedControl` library this is actually quite easy!
 
 I was inspired by [this design](http://www.tjstephens.com/blog/2016/05/16/led-matrix-display/) which took an old wine box and converted it into an 8x64 LED display.
 
 Beyond the cliché "ON AIR" message, I also wanted a couple of other modes to be available. As this is a wall piece that'll be visible from the whole room, a clock mode seemed obvious. That meant testing out the DS3231 RTC module. It turns out (!) that lots of DS3231 modules available online ship with a flaw that puts the battery at risk of overcharging and possible explosion. However, [desoldering a resistor](https://forum.arduino.cc/t/zs-042-ds3231-rtc-module/268862/70) will safely avoid this risk.
 
 ### Building the case
-<img src="images/case.jpeg" width="50%" align="right"/>The case is made from pieces of 7mm MDF that were "upcycled" from leftover IKEA shelving. Each piece was measured and drawn out, then cut with a household jigsaw tool. Videos [like this](https://www.youtube.com/watch?v=jWneDzqAbH8) were really helpful for me to know how where to get started with it.
+<img src="images/case.jpeg" width="33%" align="right"/>The case is made from pieces of 7mm MDF that were "upcycled" from leftover IKEA shelving. Each piece was measured and drawn out, then cut with a household jigsaw tool. Videos [like this](https://www.youtube.com/watch?v=jWneDzqAbH8) were really helpful for me to know how where to get started with it.
 
 After cutting the pieces, and cutting out the front slot for the LED's, I applied wood glue and clamped the sides together. Some heavy weight from above helped to keep the sides stuck on to the front. I left the glue to cure for about 24 hours.
 
 Next, I checked that the LED's fit correctly and snugly into the front slot. They did!
 
-<img src="images/acrylic.jpeg" width="50%" align="right"/>The acrylic front cover came with protective plastic on both sides. Leaving this on, I carefully drilled through the acrylic to leave a clean cut on both sides. Separately I drilled through the front cover in the same location. After confirming the alignment, I removed the acrylic's protective cover and bolted it to the case, with some washers to distribute the force a little better. It's a snug fit but doesn't need to be too tight.
+<img src="images/acrylic.jpeg" width="33%" align="right"/>The acrylic front cover came with protective plastic on both sides. Leaving this on, I carefully drilled through the acrylic to leave a clean cut on both sides. Separately I drilled through the front cover in the same location. After confirming the alignment, I removed the acrylic's protective cover and bolted it to the case, with some washers to distribute the force a little better. It's a snug fit but doesn't need to be too tight.
 
 todo stuff to mention
 * put in an API section with swagger and link to it
