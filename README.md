@@ -23,9 +23,9 @@ Electronics:
 * A long [USB cable](https://www.amazon.de/-/en/gp/product/B01NCJHEHJ/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
 
 Case:
-* 5mm [darkened perspex / acrylic](https://www.amazon.de/-/en/gp/product/B0856148X9/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
+* 3mm [darkened perspex / acrylic](https://www.amazon.de/-/en/gp/product/B0856148X9/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1)
 * Nuts and bolts
-* 7mm MDF board (sourced from leftover IKEA shelving)
+* 6mm MDF board (sourced from leftover IKEA shelving)
 
 Tools:
 * Jigsaw
@@ -42,13 +42,33 @@ I was inspired by [this design](http://www.tjstephens.com/blog/2016/05/16/led-ma
 Beyond the cliché "ON AIR" message, I also wanted a couple of other modes to be available. As this is a wall piece that'll be visible from the whole room, a clock mode seemed obvious. That meant testing out the DS3231 RTC module. It turns out (!) that lots of DS3231 modules available online ship with a flaw that puts the battery at risk of overcharging and possible explosion. However, [desoldering a resistor](https://forum.arduino.cc/t/zs-042-ds3231-rtc-module/268862/70) will safely avoid this risk.
 
 ### Building the case
-<img src="images/case.jpeg" width="33%" align="right"/>The case is made from pieces of 7mm MDF that were "upcycled" from leftover IKEA shelving. Each piece was measured and drawn out, then cut with a household jigsaw tool. Videos [like this](https://www.youtube.com/watch?v=jWneDzqAbH8) were really helpful for me to know how where to get started with it.
+<img src="images/case.jpeg" width="33%" align="right"/>The case is made from pieces of 6mm MDF that were "upcycled" from leftover IKEA shelving. Each piece was measured and drawn out, then cut with a household jigsaw tool. Videos [like this](https://www.youtube.com/watch?v=jWneDzqAbH8) were really helpful for me to know how where to get started with it.
 
 After cutting the pieces, and cutting out the front slot for the LED's, I applied wood glue and clamped the sides together. Some heavy weight from above helped to keep the sides stuck on to the front. I left the glue to cure for about 24 hours.
 
 Next, I checked that the LED's fit correctly and snugly into the front slot. They did!
 
 <img src="images/acrylic.jpeg" width="33%" align="right"/>The acrylic front cover came with protective plastic on both sides. Leaving this on, I carefully drilled through the acrylic to leave a clean cut on both sides. Separately I drilled through the front cover in the same location. After confirming the alignment, I removed the acrylic's protective cover and bolted it to the case, with some washers to distribute the force a little better. It's a snug fit but doesn't need to be too tight.
+
+Final dimensions:
+* 250mm wide
+* 89mm deep (86mm case + 3mm acrylic)
+* 120mm tall
+* LED slot
+  * 130mm wide
+  * 32mm tall
+
+### Circuit design
+
+Everything is mounted on a breadboard and wired to that. There's plenty of space left inside the case - in fact it could be slimmer, if I was to build another version in the future.
+
+<img src="images/assembly_bb.png"/>
+<i>Breadboard layout: image generated from <a href="images/assembly.fzz">fritzing</a> file</i><br/><br/>
+
+<img src="images/logical_bb.png"/>
+<i>Component layout: image generated from <a href="images/logical.fzz">fritzing</a> file</i>
+
+The microcontroller is USB powered, so no need for additional cabling to VIN.
 
 todo stuff to mention
 * put in an API section with swagger and link to it
