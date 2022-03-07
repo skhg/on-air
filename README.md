@@ -62,11 +62,11 @@ Final dimensions:
 
 Everything is mounted on a breadboard and wired to that. There's plenty of space left inside the case - in fact it could be slimmer, if I was to build another version in the future.
 
-<img src="images/assembly_bb.png"/>
-<i>Breadboard layout: image generated from <a href="images/assembly.fzz">fritzing</a> file</i><br/><br/>
-
 <img src="images/logical_bb.png"/>
 <i>Component layout: image generated from <a href="images/logical.fzz">fritzing</a> file</i><br/><br/>
+
+<img src="images/assembly_bb.png"/>
+<i>Breadboard layout: image generated from <a href="images/assembly.fzz">fritzing</a> file</i><br/><br/>
 
 The microcontroller board is USB powered, plugged into a wall adaptor.
 
