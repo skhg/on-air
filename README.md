@@ -77,7 +77,7 @@ The microcontroller board is USB powered, plugged into a wall adaptor.
 
 The program operates on a single loop, following this workflow:
 
-<img src="images/workflow.png" width="75%"/>
+<img src="images/workflow.png" width="50%"/>
 <i>Generated from .puml <a href="images/workflow.puml">file</a></i><br/><br/>
 
 ### REST API
