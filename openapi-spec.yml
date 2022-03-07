@@ -6,84 +6,83 @@ servers:
   - url: http://on-air
 tags:
   - name: Mode
-  - name: Alert > Zoom
-  - name: Alert > Zoom > Call
+  - name: Zoom Alert
+  - name: Status
 paths:
   /api/mode:
     delete:
       tags:
         - Mode
-      summary: Blank
+      summary: Set a blank screen
       responses:
-        '200':
+        '204':
           description: Successful response
-          content:
-            application/json: {}
     put:
       tags:
         - Mode
-      summary: Clock
+      summary: Choose a display mode
+      description: To be displayed unless alert is active
       requestBody:
         content:
           application/json:
             schema:
               type: object
-              example:
-                name: clock
+            examples:
+              Clock:
+                value:
+                  name: clock
+              Random Pixels:
+                value:
+                  name: random-pixels
       responses:
-        '200':
+        '204':
           description: Successful response
-          content:
-            application/json: {}
   /api/alert/zoom/call:
     put:
       tags:
-        - Alert > Zoom > Call
-      summary: Start
-      requestBody:
-        content: {}
+        - Zoom Alert
+      summary: Zoom meeting has started
       responses:
-        '200':
+        '204':
           description: Successful response
-          content:
-            application/json: {}
     delete:
       tags:
-        - Alert > Zoom > Call
-      summary: End
+        - Zoom Alert
+      summary: Zoom meeting has ended
       responses:
-        '200':
+        '204':
           description: Successful response
-          content:
-            application/json: {}
   /api/alert/zoom:
     put:
       tags:
-        - Alert > Zoom
-      summary: Enable
-      requestBody:
-        content: {}
+        - Zoom Alert
+      summary: Enable automatic "On Air" alert when Zoom call starts
       responses:
-        '200':
+        '204':
           description: Successful response
-          content:
-            application/json: {}
     delete:
       tags:
-        - Alert > Zoom
-      summary: Disable
+        - Zoom Alert
+      summary: Disable automatic "On Air" alert when Zoom call starts
       responses:
-        '200':
+        '204':
           description: Successful response
-          content:
-            application/json: {}
   /api/status:
     get:
       tags:
-        - default
-      summary: status
+        - Status
+      summary: Get system status metrics
       responses:
         '200':
           description: Successful response
           content:
-            application/json: {}
+            application/json:
+              schema:
+                type: object
+              example:
+                mode: clock
+                temperature: 24.25
+                zoom:
+                  alert-active: true
+                  call-in-progress: false
+

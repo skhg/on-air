@@ -62,16 +62,26 @@ Final dimensions:
 
 Everything is mounted on a breadboard and wired to that. There's plenty of space left inside the case - in fact it could be slimmer, if I was to build another version in the future.
 
-<img src="images/assembly_bb.png"/>
-<i>Breadboard layout: image generated from <a href="images/assembly.fzz">fritzing</a> file</i><br/><br/>
-
 <img src="images/logical_bb.png"/>
 <i>Component layout: image generated from <a href="images/logical.fzz">fritzing</a> file</i><br/><br/>
 
-The microcontroller is USB powered, so no need for additional cabling to VIN.
+<img src="images/assembly_bb.png"/>
+<i>Breadboard layout: image generated from <a href="images/assembly.fzz">fritzing</a> file</i><br/><br/>
 
-todo stuff to mention
-* put in an API section with swagger and link to it
+The microcontroller board is USB powered, plugged into a wall adaptor.
+
+<img src="images/box-interior.jpeg"/>
+<i>Breadboard and screen installed inside the box</i><br/><br/>
+
+### Software design
+
+The program operates on a single loop, following this workflow:
+
+<img src="images/workflow.png" width="50%"/>
+<i>Generated from .puml <a href="images/workflow.puml">file</a></i><br/><br/>
+
+### REST API
+See the [Swagger docs](http://jackhiggins.ie/on-air/docs/) for details
 
 ## Zoom integration
 Originally I wanted to use Zoom's webhook API to send messages to a gateway API, and then pass these on to the on-air sign. However, it turned out to be easier to use the fantastic [pyzoomproc](https://github.com/darrenpmeyer/pyzoomproc) utility, which runs on my work laptop and triggers [curl](https://github.com/curl/curl) to hit the appropriate endpoints on my sign.
