@@ -68,7 +68,10 @@ Everything is mounted on a breadboard and wired to that. There's plenty of space
 <img src="images/logical_bb.png"/>
 <i>Component layout: image generated from <a href="images/logical.fzz">fritzing</a> file</i><br/><br/>
 
-The microcontroller is USB powered, so no need for additional cabling to VIN.
+The microcontroller board is USB powered, plugged into a wall adaptor.
+
+<img src="images/box-interior.jpeg"/>
+<i>Breadboard and screen installed inside the box</i><br/><br/>
 
 todo stuff to mention
 * put in an API section with swagger and link to it
