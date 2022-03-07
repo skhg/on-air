@@ -73,8 +73,12 @@ The microcontroller board is USB powered, plugged into a wall adaptor.
 <img src="images/box-interior.jpeg"/>
 <i>Breadboard and screen installed inside the box</i><br/><br/>
 
-todo stuff to mention
-* put in an API section with swagger and link to it
+### Software design
+
+The 
+
+### REST API
+See the [Swagger docs](http://jackhiggins.ie/on-air/docs/) for details
 
 ## Zoom integration
 Originally I wanted to use Zoom's webhook API to send messages to a gateway API, and then pass these on to the on-air sign. However, it turned out to be easier to use the fantastic [pyzoomproc](https://github.com/darrenpmeyer/pyzoomproc) utility, which runs on my work laptop and triggers [curl](https://github.com/curl/curl) to hit the appropriate endpoints on my sign.

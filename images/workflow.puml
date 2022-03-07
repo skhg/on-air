@@ -1,0 +1,45 @@
+@startuml
+
+title On Air sign program loop
+
+
+
+start
+
+:Handle HTTP client requests;
+
+if (SENSOR_READ_INTERVAL_MILLIS) then (>interval)
+    :Read sensors;
+    :Send data to WebSocket;
+endif
+
+partition "Render screen" {
+
+    if (Zoom Alert Active) then(Yes)
+        if (Call In Progress) then (Yes)
+                :Get character glyphs;
+                :Draw **"ON AIR"**;
+                stop
+            endif
+    endif
+
+    :Get current mode;
+
+    if(OFF)
+        :**Blank Screen**;
+        stop
+    elseif(RANDOM_PIXELS)
+        :Choose a random pixel;
+        :Choose on/off;
+        :Set new value;
+        stop
+    elseif(CLOCK)
+        :Get time;
+        :Get numeric glyphs;
+        :Draw **TIME** glyphs;
+        stop
+    endif
+}
+
+end
+@enduml
