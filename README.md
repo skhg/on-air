@@ -75,7 +75,10 @@ The microcontroller board is USB powered, plugged into a wall adaptor.
 
 ### Software design
 
-The 
+The program operates on a single loop, following this workflow:
+
+<img src="images/workflow.png" width="75%"/>
+<i>Generated from .puml <a href="images/workflow.puml">file</a></i><br/><br/>
 
 ### REST API
 See the [Swagger docs](http://jackhiggins.ie/on-air/docs/) for details
