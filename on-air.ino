@@ -160,11 +160,11 @@ void print8x8(int screenId, const byte pixels1[], const byte pixels2[]) {
   for (int i = 0; i < 8; i++) {
     byte combo = B00000000;
 
-    for(int j=0; j < 8; j++) {
+    for (int j=0; j < 8; j++) {
       boolean outcome = bitRead(pixels1[i], j) || bitRead(pixels2[i], j);
       bitWrite(combo, j, outcome);
     }
-    
+
     PAROLA.getGraphicObject()->setRow(screenId, screenId, i, combo);
   }
 }
@@ -315,11 +315,7 @@ void webSocketEventHandler(uint8_t num, WStype_t type, uint8_t * payload,
 }
 
 void clearScreen() {
-  for (int i = 0; i < LED_COMPONENT_MODULES; i++) {
-      PAROLA.getGraphicObject()->clear();  // It's in power-saving mode on startup
-//      lc.setIntensity(i, _ledBrightness);
-//      lc.clearDisplay(i);  // Clear the display
-  }
+  PAROLA.getGraphicObject()->clear();
 }
 
 void setup(void) {
@@ -331,7 +327,7 @@ void setup(void) {
   // todo handle RTC initialisation failure
 
   PAROLA.begin();
-  
+
   clearScreen();
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
