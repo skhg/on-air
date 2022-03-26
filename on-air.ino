@@ -13,10 +13,14 @@
 #include <ArduinoJson.h>
 #include <ESPAsyncTCP.h>
 #include <WebSocketsServer.h>
-#include <LedControl.h>
+#include <MD_MAX72xx.h>
+#include <MD_Parola.h>
+#include <SPI.h>
 #include "./glyphs.h"
 #include <DS3232RTC.h>
 
+#define LED_HARDWARE_TYPE MD_MAX72XX::FC16_HW
+#define LED_COMPONENT_MODULES 4
 #define LED_DIN 13  // nodemcu v3 pin D7
 #define LED_CS 2  // nodemcu v3 pin D4
 #define LED_CLK 14  // nodemcu v3 pin D5
@@ -45,7 +49,7 @@ const int RANDOM_PIXEL_INTERVAL_MILLIS = 10;
 const int CLOCK_SEPARATOR_INTERVAL_MILLIS = 1000;
 
 DS3232RTC RTC;
-LedControl lc = LedControl(LED_DIN, LED_CLK, LED_CS, 4);
+MD_Parola PAROLA = MD_Parola(LED_HARDWARE_TYPE, LED_CS, LED_COMPONENT_MODULES);
 WiFiClient WIFI_CLIENT;
 HTTPClient HTTP_CLIENT;
 ESP8266WebServer HTTP_SERVER(80);
@@ -65,7 +69,7 @@ uint64_t _currentMillis = millis();
 uint64_t _sensorReadMillis = millis();
 uint64_t _randomPixelMillis = millis();
 
-MODES _activeMode = OFF;
+MODES _activeMode = CLOCK;
 int _ledBrightness = 1;  // Max 15
 
 bool _zoomAlertActive = true;
@@ -141,12 +145,11 @@ void renderRandomPixels() {
 
   _randomPixelMillis = _currentMillis;
 
-  int screen = random(lc.getDeviceCount());
   int row = random(8);
-  int column = random(8);
+  int column = random(8 * LED_COMPONENT_MODULES);
   int state = random(2);
 
-  lc.setLed(screen, row, column, state);
+  PAROLA.getGraphicObject()->setPoint(row, column, state);
 }
 
 void print8x8(int screenId, const byte pixels1[]) {
@@ -162,7 +165,7 @@ void print8x8(int screenId, const byte pixels1[], const byte pixels2[]) {
       bitWrite(combo, j, outcome);
     }
     
-    lc.setRow(screenId, i, combo);
+    PAROLA.getGraphicObject()->setRow(screenId, screenId, i, combo);
   }
 }
 
@@ -312,10 +315,10 @@ void webSocketEventHandler(uint8_t num, WStype_t type, uint8_t * payload,
 }
 
 void clearScreen() {
-  for (int i = 0; i < lc.getDeviceCount(); i++) {
-      lc.shutdown(i, false);  // It's in power-saving mode on startup
-      lc.setIntensity(i, _ledBrightness);
-      lc.clearDisplay(i);  // Clear the display
+  for (int i = 0; i < LED_COMPONENT_MODULES; i++) {
+      PAROLA.getGraphicObject()->clear();  // It's in power-saving mode on startup
+//      lc.setIntensity(i, _ledBrightness);
+//      lc.clearDisplay(i);  // Clear the display
   }
 }
 
@@ -327,6 +330,8 @@ void setup(void) {
 
   // todo handle RTC initialisation failure
 
+  PAROLA.begin();
+  
   clearScreen();
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
