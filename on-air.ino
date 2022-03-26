@@ -81,7 +81,7 @@ bool _zoomCallInProgress = false;
 char _marqueeMessage[MARQUEE_STRING_MAX_LENGTH] = { "Hello world!" };
 const textEffect_t SCROLL_EFFECT = PA_SCROLL_LEFT;
 const textPosition_t SCROLL_ALIGN = PA_LEFT;
-const uint16_t SCROLL_PAUSE = 2000;
+const uint16_t SCROLL_PAUSE = 0;
 const uint8_t SCROLL_SPEED = 50; // todo naming
 
 void sendToWebSocketClients(String webSocketMessage) {
