@@ -24,6 +24,7 @@
 #define LED_DIN 13  // nodemcu v3 pin D7
 #define LED_CS 2  // nodemcu v3 pin D4
 #define LED_CLK 14  // nodemcu v3 pin D5
+#define  MARQUEE_STRING_MAX_LENGTH 255
 
 const String STATIC_CONTENT_INDEX_LOCATION =
 "http://jackhiggins.ie/on-air/";
@@ -61,7 +62,8 @@ WebSocketsServer WEB_SOCKET_SERVER(81);
 enum MODES {
   OFF,
   RANDOM_PIXELS,
-  CLOCK
+  CLOCK,
+  MARQUEE
 };
 
 float _clockTemperature = 0.0;
@@ -70,10 +72,17 @@ uint64_t _sensorReadMillis = millis();
 uint64_t _randomPixelMillis = millis();
 
 MODES _activeMode = CLOCK;
+boolean _modeChanged = true;
 int _ledBrightness = 1;  // Max 15
 
 bool _zoomAlertActive = true;
 bool _zoomCallInProgress = false;
+
+char _marqueeMessage[MARQUEE_STRING_MAX_LENGTH] = { "Hello world!" };
+const textEffect_t SCROLL_EFFECT = PA_SCROLL_LEFT;
+const textPosition_t SCROLL_ALIGN = PA_LEFT;
+const uint16_t SCROLL_PAUSE = 2000;
+const uint8_t SCROLL_SPEED = 50; // todo naming
 
 void sendToWebSocketClients(String webSocketMessage) {
   WEB_SOCKET_SERVER.broadcastTXT(webSocketMessage);
@@ -100,10 +109,24 @@ void renderScreen() {
   }
 
   switch (_activeMode) {
-    case OFF: renderBlankScreen(); return;
-    case RANDOM_PIXELS: renderRandomPixels(); return;
-    case CLOCK: renderClock(); return;
-    default: return;
+    case OFF: renderBlankScreen(); break;
+    case RANDOM_PIXELS: renderRandomPixels(); break;
+    case CLOCK: renderClock(); break;
+    case MARQUEE: renderMarquee(); break;
+    default: break;
+  }
+
+  _modeChanged = false;
+}
+
+void renderMarquee() {
+  if (_modeChanged) {
+    clearScreen();
+    PAROLA.displayText(_marqueeMessage, SCROLL_ALIGN, SCROLL_SPEED, SCROLL_PAUSE, SCROLL_EFFECT, SCROLL_EFFECT);
+  }
+
+  if (PAROLA.displayAnimate()) {
+    PAROLA.displayReset();
   }
 }
 
@@ -211,8 +234,9 @@ void statusHttpEventHandler() {
 String stateJson() {
   String jsonContent;
 
-  StaticJsonDocument<128> statusJson;
+  StaticJsonDocument<512> statusJson;
   statusJson["mode"] = modeToString(_activeMode);
+  statusJson["message"] = _marqueeMessage;
   statusJson["temperature"] = _clockTemperature;
 
   JsonObject zoomJson = statusJson.createNestedObject("zoom");
@@ -222,6 +246,31 @@ String stateJson() {
   serializeJson(statusJson, jsonContent);
 
   return jsonContent;
+}
+
+void messageHttpEventHandler() {
+  if (HTTP_SERVER.method() == HTTP_PUT) {
+    if (HTTP_SERVER.hasArg("plain") == false) {
+      HTTP_SERVER.send(HTTP_BAD_REQUEST, CONTENT_TYPE_TEXT_PLAIN,
+        "Missing body");
+    } else {
+      StaticJsonDocument<512> newMessageJson;
+      deserializeJson(newMessageJson, HTTP_SERVER.arg("plain"));
+      // todo handle invalid inputs. could be bad, use MARQUEE_STRING_MAX_LENGTH
+      strcpy(_marqueeMessage, newMessageJson["value"]);
+
+      _modeChanged = true;
+      HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+      sendToWebSocketClients(stateJson());
+    }
+  } else if (HTTP_SERVER.method() == HTTP_DELETE) {
+    _activeMode = OFF;
+    HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+    sendToWebSocketClients(stateJson());
+  } else {
+    HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
+      METHOD_NOT_ALLOWED_MESSAGE);
+  }
 }
 
 void modeHttpEventHandler() {
@@ -234,6 +283,7 @@ void modeHttpEventHandler() {
       deserializeJson(newModeJson, HTTP_SERVER.arg("plain"));
       const char* newMode = newModeJson["name"];
       _activeMode = stringToMode(newMode);
+      _modeChanged = true;
       HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
       sendToWebSocketClients(stateJson());
     }
@@ -252,6 +302,8 @@ MODES stringToMode(String mode) {
     return RANDOM_PIXELS;
   } else if (mode == "clock") {
     return CLOCK;
+  } else if (mode == "marquee") {
+    return MARQUEE;
   } else {
     return OFF;
   }
@@ -262,6 +314,7 @@ String modeToString(MODES mode) {
     case OFF: return "off";
     case RANDOM_PIXELS: return "random-pixels";
     case CLOCK: return "clock";
+    case MARQUEE: return "marquee";
     default: return "Unknown";
   }
 }
@@ -315,7 +368,7 @@ void webSocketEventHandler(uint8_t num, WStype_t type, uint8_t * payload,
 }
 
 void clearScreen() {
-  PAROLA.getGraphicObject()->clear();
+  PAROLA.displayClear();
 }
 
 void setup(void) {
@@ -327,7 +380,7 @@ void setup(void) {
   // todo handle RTC initialisation failure
 
   PAROLA.begin();
-
+  PAROLA.setIntensity(_ledBrightness);
   clearScreen();
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -352,6 +405,7 @@ void setup(void) {
   HTTP_SERVER.on("/", httpRootEventHandler);
   HTTP_SERVER.on("/api/status", statusHttpEventHandler);
   HTTP_SERVER.on("/api/mode", modeHttpEventHandler);
+  HTTP_SERVER.on("/api/message", messageHttpEventHandler);
   HTTP_SERVER.on("/api/alert/zoom", zoomAlertHttpEventHandler);
   HTTP_SERVER.on("/api/alert/zoom/call", zoomCallHttpEventHandler);
 
