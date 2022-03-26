@@ -55,8 +55,12 @@ function renderSkeleton(){
     <div id="clock" class="row2col2 grid-box">
         <i class="far fa-clock"></i>
     </div>
-    <div class="row3col1 grid-box"></div>
-    <div class="row3col2 grid-box"></div>
+    <div id="keyboard" class="row3col1 grid-box">
+        <i class="fas fa-keyboard"></i>
+    </div>
+    <div id="marquee" class="row3col2 grid-box">
+        <i class="fas fa-comment-dots"></i>
+    </div>
     <div class="row4col1 grid-box"></div>
     <div class="row4col2 grid-box"></div>
   </div>
@@ -104,8 +108,10 @@ function app(){ // eslint-disable-line no-unused-vars
 
     $('random-pixels').addEventListener(eventName, randomPixels);
     $('clock').addEventListener(eventName, clock);
+    $('marquee').addEventListener(eventName, marqueeMode);
     $('blank-display').addEventListener(eventName, blankDisplay);
     $('zoom-alert').addEventListener(eventName, toggleZoomAlert);
+    $('keyboard').addEventListener(eventName, marqueeKeyboardInput);
 
     webSocketUrl = 'ws://' + webSocketServerAddr + ':81';
     refreshQuery = new XMLHttpRequest();
@@ -157,8 +163,15 @@ function handleWebSocketMessage(event){
 function updateScreen(){
     const randomPixelsDiv = $('random-pixels');
     const clockDiv = $('clock');
+    const marqueeDiv = $('marquee');
     const blankDisplayDiv = $('blank-display');
     const zoomAlertDiv = $('zoom-alert');
+
+    if(state['mode'] === "marquee"){
+        marqueeDiv.className = 'row3col2 grid-box enabled';
+    } else {
+        marqueeDiv.className = 'row3col2 grid-box';
+    }
 
     if(state['mode'] === "clock"){
         clockDiv.className = 'row2col2 grid-box enabled';
@@ -207,6 +220,43 @@ function refreshState(){
         }
     };
     refreshQuery.send();
+}
+
+
+
+function marqueeKeyboardInput(){
+    let userInput = prompt("Enter your message", "");
+
+    if (userInput == null || userInput == "") {
+        console.log("No user input");
+        // todo limit to 255 chars
+    } else {
+        const xhr = new XMLHttpRequest();
+    
+        const newMessageJson = {
+            "value": userInput
+        };
+
+        xhr.open('PUT', httpServerAddr + '/message');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(newMessageJson));
+    }
+}
+
+function marqueeMode(){
+    refreshQuery.abort();
+    const xhr = new XMLHttpRequest();
+    
+    const newModeJson = {
+        "name": "marquee"
+    };
+
+    xhr.open('PUT', httpServerAddr + '/mode');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify(newModeJson));
+
+    state['mode'] = 'marquee';
+    updateScreen();
 }
 
 /**
