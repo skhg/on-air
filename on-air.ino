@@ -48,6 +48,12 @@ const String METHOD_NOT_ALLOWED_MESSAGE = "Method Not Allowed";
 const int SENSOR_READ_INTERVAL_MILLIS = 10000;
 const int RANDOM_PIXEL_INTERVAL_MILLIS = 10;
 const int CLOCK_SEPARATOR_INTERVAL_MILLIS = 1000;
+const int _ledBrightness = 1;  // Max 15
+
+const textEffect_t SCROLL_EFFECT = PA_SCROLL_LEFT;
+const textPosition_t SCROLL_ALIGN = PA_LEFT;
+const uint16_t SCROLL_PAUSE = 0;
+const uint8_t SCROLL_MS_BETWEEN_FRAMES = 50;
 
 DS3232RTC RTC;
 MD_Parola LED_DISPLAY = MD_Parola(LED_HARDWARE_TYPE, LED_CS, LED_COMPONENT_MODULES);
@@ -73,16 +79,15 @@ uint64_t _randomPixelMillis = millis();
 
 MODES _activeMode = CLOCK;
 boolean _modeChanged = true;
-int _ledBrightness = 1;  // Max 15
 
 bool _zoomAlertActive = true;
 bool _zoomCallInProgress = false;
 
 char _marqueeMessage[MARQUEE_STRING_MAX_LENGTH] = { "Hello world!" };
-const textEffect_t SCROLL_EFFECT = PA_SCROLL_LEFT;
-const textPosition_t SCROLL_ALIGN = PA_LEFT;
-const uint16_t SCROLL_PAUSE = 0;
-const uint8_t SCROLL_SPEED = 50; // todo naming
+
+/**
+ * Application functions
+ */
 
 void sendToWebSocketClients(String webSocketMessage) {
   WEB_SOCKET_SERVER.broadcastTXT(webSocketMessage);
@@ -122,7 +127,7 @@ void renderScreen() {
 void renderMarquee() {
   if (_modeChanged) {
     clearScreen();
-    LED_DISPLAY.displayText(_marqueeMessage, SCROLL_ALIGN, SCROLL_SPEED, SCROLL_PAUSE, SCROLL_EFFECT, SCROLL_EFFECT);
+    LED_DISPLAY.displayText(_marqueeMessage, SCROLL_ALIGN, SCROLL_MS_BETWEEN_FRAMES, SCROLL_PAUSE, SCROLL_EFFECT, SCROLL_EFFECT);
   }
 
   if (LED_DISPLAY.displayAnimate()) {
@@ -256,7 +261,7 @@ void messageHttpEventHandler() {
     } else {
       StaticJsonDocument<512> newMessageJson;
       deserializeJson(newMessageJson, HTTP_SERVER.arg("plain"));
-      // todo handle invalid inputs. could be bad, use MARQUEE_STRING_MAX_LENGTH
+      // todo check that deserialisation worked ok and text is shorter than MARQUEE_STRING_MAX_LENGTH
       strcpy(_marqueeMessage, newMessageJson["value"]);
 
       _modeChanged = true;
@@ -281,6 +286,7 @@ void modeHttpEventHandler() {
     } else {
       StaticJsonDocument<48> newModeJson;
       deserializeJson(newModeJson, HTTP_SERVER.arg("plain"));
+      //todo check deserialisation worked ok and mode is valid
       const char* newMode = newModeJson["name"];
       _activeMode = stringToMode(newMode);
       _modeChanged = true;
@@ -371,6 +377,10 @@ void clearScreen() {
   LED_DISPLAY.setIntensity(_ledBrightness);
   LED_DISPLAY.displayClear();
 }
+
+/**
+ * Essential system functions
+ */
 
 void setup(void) {
   randomSeed(analogRead(0));
