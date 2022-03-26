@@ -50,7 +50,7 @@ const int RANDOM_PIXEL_INTERVAL_MILLIS = 10;
 const int CLOCK_SEPARATOR_INTERVAL_MILLIS = 1000;
 
 DS3232RTC RTC;
-MD_Parola PAROLA = MD_Parola(LED_HARDWARE_TYPE, LED_CS, LED_COMPONENT_MODULES);
+MD_Parola LED_DISPLAY = MD_Parola(LED_HARDWARE_TYPE, LED_CS, LED_COMPONENT_MODULES);
 WiFiClient WIFI_CLIENT;
 HTTPClient HTTP_CLIENT;
 ESP8266WebServer HTTP_SERVER(80);
@@ -122,11 +122,11 @@ void renderScreen() {
 void renderMarquee() {
   if (_modeChanged) {
     clearScreen();
-    PAROLA.displayText(_marqueeMessage, SCROLL_ALIGN, SCROLL_SPEED, SCROLL_PAUSE, SCROLL_EFFECT, SCROLL_EFFECT);
+    LED_DISPLAY.displayText(_marqueeMessage, SCROLL_ALIGN, SCROLL_SPEED, SCROLL_PAUSE, SCROLL_EFFECT, SCROLL_EFFECT);
   }
 
-  if (PAROLA.displayAnimate()) {
-    PAROLA.displayReset();
+  if (LED_DISPLAY.displayAnimate()) {
+    LED_DISPLAY.displayReset();
   }
 }
 
@@ -172,7 +172,7 @@ void renderRandomPixels() {
   int column = random(8 * LED_COMPONENT_MODULES);
   int state = random(2);
 
-  PAROLA.getGraphicObject()->setPoint(row, column, state);
+  LED_DISPLAY.getGraphicObject()->setPoint(row, column, state);
 }
 
 void print8x8(int screenId, const byte pixels1[]) {
@@ -188,7 +188,7 @@ void print8x8(int screenId, const byte pixels1[], const byte pixels2[]) {
       bitWrite(combo, j, outcome);
     }
 
-    PAROLA.getGraphicObject()->setRow(screenId, screenId, i, combo);
+    LED_DISPLAY.getGraphicObject()->setRow(screenId, screenId, i, combo);
   }
 }
 
@@ -368,7 +368,8 @@ void webSocketEventHandler(uint8_t num, WStype_t type, uint8_t * payload,
 }
 
 void clearScreen() {
-  PAROLA.displayClear();
+  LED_DISPLAY.setIntensity(_ledBrightness);
+  LED_DISPLAY.displayClear();
 }
 
 void setup(void) {
@@ -379,8 +380,7 @@ void setup(void) {
 
   // todo handle RTC initialisation failure
 
-  PAROLA.begin();
-  PAROLA.setIntensity(_ledBrightness);
+  LED_DISPLAY.begin();
   clearScreen();
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
