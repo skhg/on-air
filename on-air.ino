@@ -263,7 +263,7 @@ void messageHttpEventHandler() {
       StaticJsonDocument<512> newMessageJson;
       DeserializationError err = deserializeJson(newMessageJson, HTTP_SERVER.arg("plain"));
 
-      if(err){
+      if (err) {
         Serial.println("Deserialising new message failed!");
         Serial.println(err.c_str());
         HTTP_SERVER.send(HTTP_BAD_REQUEST, CONTENT_TYPE_TEXT_PLAIN,
@@ -272,13 +272,12 @@ void messageHttpEventHandler() {
       }
 
       String possibleNewMessage = newMessageJson["value"];
-      if(possibleNewMessage.length() > MARQUEE_STRING_MAX_LENGTH){
+      if (possibleNewMessage.length() > MARQUEE_STRING_MAX_LENGTH) {
         HTTP_SERVER.send(HTTP_PAYLOAD_TOO_LARGE, CONTENT_TYPE_TEXT_PLAIN,
         "Message too long. Must be 255 characters or less.");
         return;
       }
-      
-      // todo check that deserialisation worked ok and text is shorter than MARQUEE_STRING_MAX_LENGTH
+
       strcpy(_marqueeMessage, newMessageJson["value"]);
 
       _modeChanged = true;
@@ -304,15 +303,14 @@ void modeHttpEventHandler() {
       StaticJsonDocument<48> newModeJson;
       DeserializationError err = deserializeJson(newModeJson, HTTP_SERVER.arg("plain"));
 
-      if(err){
+      if (err) {
         Serial.println("Deserialising new mode failed!");
         Serial.println(err.c_str());
         HTTP_SERVER.send(HTTP_BAD_REQUEST, CONTENT_TYPE_TEXT_PLAIN,
         "Invalid mode");
         return;
       }
-      
-      //todo check deserialisation worked ok and mode is valid
+
       const char* newMode = newModeJson["name"];
       _activeMode = stringToMode(newMode);
       _modeChanged = true;
