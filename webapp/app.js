@@ -56,13 +56,12 @@ function renderSkeleton(){
         <i class="far fa-clock"></i>
     </div>
     <div id="keyboard" class="row3col1 grid-box">
-        <i class="fas fa-keyboard"></i>
+        <i class="fas fa-edit"></i>
     </div>
     <div id="marquee" class="row3col2 grid-box">
-        <i class="fas fa-comment-dots"></i>
+        <i id="message-icon" class="fas fa-comment-dots"></i>
         <div class="marquee-container">
-            <div id="marquee-message" class="text-message">
-        </div>
+            <div id="marquee-message" class="text-message">...</div>
         </div>
     </div>
     <div class="row4col1 grid-box"></div>
