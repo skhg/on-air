@@ -1,6 +1,6 @@
 @font-face {
-    font-family: 'VT323-Regular';
-    src: url('VT323-Regular.ttf') format('truetype');
+  font-family: 'VT323-Regular';
+  src: url('VT323-Regular.ttf') format('truetype');
 }
 
 html,
@@ -13,23 +13,23 @@ body,
 }
 
 #message-icon {
-    position: relative;
-    top: -3vh;
+  position: relative;
+  top: -3vh;
 }
 
 .marquee-container {
-    position: relative;
+  position: relative;
 }
 
 .text-message {
-    position: absolute;
-    top: -5vh;
-    font-family: 'VT323-Regular';
-    text-align: center;
-    font-size: 4vh;
-    width: 50vw;
-    height: 4vh;
-    overflow: hidden;
+  position: absolute;
+  top: -5vh;
+  font-family: 'VT323-Regular', Courier, monospace;
+  text-align: center;
+  font-size: 4vh;
+  width: 50vw;
+  height: 4vh;
+  overflow: hidden;
 }
 
 .grid-container {
