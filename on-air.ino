@@ -13,13 +13,18 @@
 #include <ArduinoJson.h>
 #include <ESPAsyncTCP.h>
 #include <WebSocketsServer.h>
-#include <LedControl.h>
+#include <MD_MAX72xx.h>
+#include <MD_Parola.h>
+#include <SPI.h>
 #include "./glyphs.h"
 #include <DS3232RTC.h>
 
+#define LED_HARDWARE_TYPE MD_MAX72XX::FC16_HW
+#define LED_COMPONENT_MODULES 4
 #define LED_DIN 13  // nodemcu v3 pin D7
 #define LED_CS 2  // nodemcu v3 pin D4
 #define LED_CLK 14  // nodemcu v3 pin D5
+#define  MARQUEE_STRING_MAX_LENGTH 255
 
 const String STATIC_CONTENT_INDEX_LOCATION =
 "http://jackhiggins.ie/on-air/";
@@ -37,15 +42,22 @@ const int HTTP_NO_CONTENT = 204;
 const int HTTP_NOT_FOUND = 404;
 const int HTTP_METHOD_NOT_ALLOWED = 405;
 const int HTTP_BAD_REQUEST = 400;
+const int HTTP_PAYLOAD_TOO_LARGE = 413;
 
 const String METHOD_NOT_ALLOWED_MESSAGE = "Method Not Allowed";
 
 const int SENSOR_READ_INTERVAL_MILLIS = 10000;
 const int RANDOM_PIXEL_INTERVAL_MILLIS = 10;
 const int CLOCK_SEPARATOR_INTERVAL_MILLIS = 1000;
+const int _ledBrightness = 1;  // Max 15
+
+const textEffect_t SCROLL_EFFECT = PA_SCROLL_LEFT;
+const textPosition_t SCROLL_ALIGN = PA_LEFT;
+const uint16_t SCROLL_PAUSE = 0;
+const uint8_t SCROLL_MS_BETWEEN_FRAMES = 50;
 
 DS3232RTC RTC;
-LedControl lc = LedControl(LED_DIN, LED_CLK, LED_CS, 4);
+MD_Parola LED_DISPLAY = MD_Parola(LED_HARDWARE_TYPE, LED_CS, LED_COMPONENT_MODULES);
 WiFiClient WIFI_CLIENT;
 HTTPClient HTTP_CLIENT;
 ESP8266WebServer HTTP_SERVER(80);
@@ -57,7 +69,8 @@ WebSocketsServer WEB_SOCKET_SERVER(81);
 enum MODES {
   OFF,
   RANDOM_PIXELS,
-  CLOCK
+  CLOCK,
+  MARQUEE
 };
 
 float _clockTemperature = 0.0;
@@ -65,11 +78,17 @@ uint64_t _currentMillis = millis();
 uint64_t _sensorReadMillis = millis();
 uint64_t _randomPixelMillis = millis();
 
-MODES _activeMode = OFF;
-int _ledBrightness = 1;  // Max 15
+MODES _activeMode = CLOCK;
+boolean _modeChanged = true;
 
 bool _zoomAlertActive = true;
 bool _zoomCallInProgress = false;
+
+char _marqueeMessage[MARQUEE_STRING_MAX_LENGTH] = { "Hello world!" };
+
+/**
+ * Application functions
+ */
 
 void sendToWebSocketClients(String webSocketMessage) {
   WEB_SOCKET_SERVER.broadcastTXT(webSocketMessage);
@@ -96,10 +115,24 @@ void renderScreen() {
   }
 
   switch (_activeMode) {
-    case OFF: renderBlankScreen(); return;
-    case RANDOM_PIXELS: renderRandomPixels(); return;
-    case CLOCK: renderClock(); return;
-    default: return;
+    case OFF: renderBlankScreen(); break;
+    case RANDOM_PIXELS: renderRandomPixels(); break;
+    case CLOCK: renderClock(); break;
+    case MARQUEE: renderMarquee(); break;
+    default: break;
+  }
+
+  _modeChanged = false;
+}
+
+void renderMarquee() {
+  if (_modeChanged) {
+    clearScreen();
+    LED_DISPLAY.displayText(_marqueeMessage, SCROLL_ALIGN, SCROLL_MS_BETWEEN_FRAMES, SCROLL_PAUSE, SCROLL_EFFECT, SCROLL_EFFECT);
+  }
+
+  if (LED_DISPLAY.displayAnimate()) {
+    LED_DISPLAY.displayReset();
   }
 }
 
@@ -141,12 +174,11 @@ void renderRandomPixels() {
 
   _randomPixelMillis = _currentMillis;
 
-  int screen = random(lc.getDeviceCount());
   int row = random(8);
-  int column = random(8);
+  int column = random(8 * LED_COMPONENT_MODULES);
   int state = random(2);
 
-  lc.setLed(screen, row, column, state);
+  LED_DISPLAY.getGraphicObject()->setPoint(row, column, state);
 }
 
 void print8x8(int screenId, const byte pixels1[]) {
@@ -157,12 +189,12 @@ void print8x8(int screenId, const byte pixels1[], const byte pixels2[]) {
   for (int i = 0; i < 8; i++) {
     byte combo = B00000000;
 
-    for(int j=0; j < 8; j++) {
+    for (int j=0; j < 8; j++) {
       boolean outcome = bitRead(pixels1[i], j) || bitRead(pixels2[i], j);
       bitWrite(combo, j, outcome);
     }
-    
-    lc.setRow(screenId, i, combo);
+
+    LED_DISPLAY.getGraphicObject()->setRow(screenId, screenId, i, combo);
   }
 }
 
@@ -208,8 +240,9 @@ void statusHttpEventHandler() {
 String stateJson() {
   String jsonContent;
 
-  StaticJsonDocument<128> statusJson;
+  StaticJsonDocument<512> statusJson;
   statusJson["mode"] = modeToString(_activeMode);
+  statusJson["message"] = _marqueeMessage;
   statusJson["temperature"] = _clockTemperature;
 
   JsonObject zoomJson = statusJson.createNestedObject("zoom");
@@ -221,6 +254,46 @@ String stateJson() {
   return jsonContent;
 }
 
+void messageHttpEventHandler() {
+  if (HTTP_SERVER.method() == HTTP_PUT) {
+    if (HTTP_SERVER.hasArg("plain") == false) {
+      HTTP_SERVER.send(HTTP_BAD_REQUEST, CONTENT_TYPE_TEXT_PLAIN,
+        "Missing body");
+    } else {
+      StaticJsonDocument<512> newMessageJson;
+      DeserializationError err = deserializeJson(newMessageJson, HTTP_SERVER.arg("plain"));
+
+      if (err) {
+        Serial.println("Deserialising new message failed!");
+        Serial.println(err.c_str());
+        HTTP_SERVER.send(HTTP_BAD_REQUEST, CONTENT_TYPE_TEXT_PLAIN,
+        "Invalid message");
+        return;
+      }
+
+      String possibleNewMessage = newMessageJson["value"];
+      if (possibleNewMessage.length() > MARQUEE_STRING_MAX_LENGTH) {
+        HTTP_SERVER.send(HTTP_PAYLOAD_TOO_LARGE, CONTENT_TYPE_TEXT_PLAIN,
+        "Message too long. Must be 255 characters or less.");
+        return;
+      }
+
+      strcpy(_marqueeMessage, newMessageJson["value"]);
+
+      _modeChanged = true;
+      HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+      sendToWebSocketClients(stateJson());
+    }
+  } else if (HTTP_SERVER.method() == HTTP_DELETE) {
+    _activeMode = OFF;
+    HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
+    sendToWebSocketClients(stateJson());
+  } else {
+    HTTP_SERVER.send(HTTP_METHOD_NOT_ALLOWED, CONTENT_TYPE_TEXT_PLAIN,
+      METHOD_NOT_ALLOWED_MESSAGE);
+  }
+}
+
 void modeHttpEventHandler() {
   if (HTTP_SERVER.method() == HTTP_PUT) {
     if (HTTP_SERVER.hasArg("plain") == false) {
@@ -228,9 +301,19 @@ void modeHttpEventHandler() {
         "Missing body");
     } else {
       StaticJsonDocument<48> newModeJson;
-      deserializeJson(newModeJson, HTTP_SERVER.arg("plain"));
+      DeserializationError err = deserializeJson(newModeJson, HTTP_SERVER.arg("plain"));
+
+      if (err) {
+        Serial.println("Deserialising new mode failed!");
+        Serial.println(err.c_str());
+        HTTP_SERVER.send(HTTP_BAD_REQUEST, CONTENT_TYPE_TEXT_PLAIN,
+        "Invalid mode");
+        return;
+      }
+
       const char* newMode = newModeJson["name"];
       _activeMode = stringToMode(newMode);
+      _modeChanged = true;
       HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
       sendToWebSocketClients(stateJson());
     }
@@ -249,6 +332,8 @@ MODES stringToMode(String mode) {
     return RANDOM_PIXELS;
   } else if (mode == "clock") {
     return CLOCK;
+  } else if (mode == "marquee") {
+    return MARQUEE;
   } else {
     return OFF;
   }
@@ -259,6 +344,7 @@ String modeToString(MODES mode) {
     case OFF: return "off";
     case RANDOM_PIXELS: return "random-pixels";
     case CLOCK: return "clock";
+    case MARQUEE: return "marquee";
     default: return "Unknown";
   }
 }
@@ -312,12 +398,13 @@ void webSocketEventHandler(uint8_t num, WStype_t type, uint8_t * payload,
 }
 
 void clearScreen() {
-  for (int i = 0; i < lc.getDeviceCount(); i++) {
-      lc.shutdown(i, false);  // It's in power-saving mode on startup
-      lc.setIntensity(i, _ledBrightness);
-      lc.clearDisplay(i);  // Clear the display
-  }
+  LED_DISPLAY.setIntensity(_ledBrightness);
+  LED_DISPLAY.displayClear();
 }
+
+/**
+ * Essential system functions
+ */
 
 void setup(void) {
   randomSeed(analogRead(0));
@@ -327,6 +414,7 @@ void setup(void) {
 
   // todo handle RTC initialisation failure
 
+  LED_DISPLAY.begin();
   clearScreen();
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -351,6 +439,7 @@ void setup(void) {
   HTTP_SERVER.on("/", httpRootEventHandler);
   HTTP_SERVER.on("/api/status", statusHttpEventHandler);
   HTTP_SERVER.on("/api/mode", modeHttpEventHandler);
+  HTTP_SERVER.on("/api/message", messageHttpEventHandler);
   HTTP_SERVER.on("/api/alert/zoom", zoomAlertHttpEventHandler);
   HTTP_SERVER.on("/api/alert/zoom/call", zoomCallHttpEventHandler);
 
