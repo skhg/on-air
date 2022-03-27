@@ -8,6 +8,7 @@ tags:
   - name: Mode
   - name: Zoom Alert
   - name: Status
+  - name: Message
 paths:
   /api/mode:
     delete:
@@ -34,9 +35,32 @@ paths:
               Random Pixels:
                 value:
                   name: random-pixels
+              Marquee:
+                value:
+                  name: marquee
       responses:
         '204':
           description: Successful response
+  /api/message:
+    put:
+      tags:
+        - Message
+      summary: Supply a marquee message
+      description: To be displayed when the "scrolling text" mode is active. Maximum length of 255 characters, normalised to ASCII.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example:
+                value: A sample message!
+      responses:
+        '204':
+          description: Successful response
+        '400':
+          description: Invalid message
+        '413':
+          description: Message contents longer than 255 characters
   /api/alert/zoom/call:
     put:
       tags:
@@ -81,8 +105,8 @@ paths:
                 type: object
               example:
                 mode: clock
+                message: Hello world!
                 temperature: 24.25
                 zoom:
                   alert-active: true
                   call-in-progress: false
-
