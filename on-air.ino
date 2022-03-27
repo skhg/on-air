@@ -311,11 +311,14 @@ void modeHttpEventHandler() {
         return;
       }
 
-      const char* newMode = newModeJson["name"];
-      _activeMode = stringToMode(newMode);
-      _modeChanged = true;
+      MODES newMode = stringToMode(newModeJson["name"]);
+      if (newMode != _activeMode) {
+        _activeMode = newMode;
+        _modeChanged = true;
+        sendToWebSocketClients(stateJson());
+      }
+      
       HTTP_SERVER.send(HTTP_NO_CONTENT, CONTENT_TYPE_TEXT_PLAIN, EMPTY_STRING);
-      sendToWebSocketClients(stateJson());
     }
   } else if (HTTP_SERVER.method() == HTTP_DELETE) {
     _activeMode = OFF;
