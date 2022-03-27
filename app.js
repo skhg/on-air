@@ -72,19 +72,19 @@ function renderSkeleton(){
     const appleIcon = document.createElement('link');
     appleIcon.rel = 'apple-touch-icon';
     appleIcon.sizes = '180x180';
-    appleIcon.href = webRoot + '/favicon_io/apple-touch-icon.png?version=16a11cfe758b7b07fcbc0c4f6b9532f9e2935b48';
+    appleIcon.href = webRoot + '/favicon_io/apple-touch-icon.png?version=ccaca480d12a8ebb2fd2dfac512a7e03db66c847';
     document.head.appendChild(appleIcon);
 
     const icon = document.createElement('link');
     icon.rel = 'icon';
     icon.type = 'image/png';
-    icon.href = webRoot + '/favicon_io/favicon-32x32.png?version=16a11cfe758b7b07fcbc0c4f6b9532f9e2935b48';
+    icon.href = webRoot + '/favicon_io/favicon-32x32.png?version=ccaca480d12a8ebb2fd2dfac512a7e03db66c847';
     document.head.appendChild(icon);
 
     const stylesheet = document.createElement('link');
     stylesheet.rel = 'stylesheet';
     stylesheet.type = 'text/css';
-    stylesheet.href = webRoot + '/style.css?version=16a11cfe758b7b07fcbc0c4f6b9532f9e2935b48';
+    stylesheet.href = webRoot + '/style.css?version=ccaca480d12a8ebb2fd2dfac512a7e03db66c847';
     document.head.appendChild(stylesheet);
 
     document.title = "ON AIR";
