@@ -60,6 +60,10 @@ function renderSkeleton(){
     </div>
     <div id="marquee" class="row3col2 grid-box">
         <i class="fas fa-comment-dots"></i>
+        <div class="marquee-container">
+            <div id="marquee-message" class="text-message">
+        </div>
+        </div>
     </div>
     <div class="row4col1 grid-box"></div>
     <div class="row4col2 grid-box"></div>
@@ -166,6 +170,9 @@ function updateScreen(){
     const marqueeDiv = $('marquee');
     const blankDisplayDiv = $('blank-display');
     const zoomAlertDiv = $('zoom-alert');
+    const marqueeMessage = $('marquee-message');
+
+    marqueeMessage.innerText = state['message'];
 
     if(state['mode'] === "marquee"){
         marqueeDiv.className = 'row3col2 grid-box enabled';
@@ -229,8 +236,18 @@ function marqueeKeyboardInput(){
 
     if (userInput == null || userInput == "") {
         console.log("No user input");
-        // todo limit to 255 chars
     } else {
+        
+        userInput = userInput.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Replace accented characters
+        userInput = userInput.replace(/[^\x00-\x7F]/g, ""); // Remove non-ASCII characters
+
+        if(userInput==""){
+            alert("Can't display that, sorry!");
+            return;
+        }
+
+        userInput = userInput.substring(0,255); // Trim to maximum length
+
         const xhr = new XMLHttpRequest();
     
         const newMessageJson = {
@@ -240,6 +257,8 @@ function marqueeKeyboardInput(){
         xhr.open('PUT', httpServerAddr + '/message');
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.send(JSON.stringify(newMessageJson));
+
+        marqueeMode();
     }
 }
 
