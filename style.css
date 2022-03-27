@@ -1,3 +1,8 @@
+@font-face {
+  font-family: 'VT323-Regular';
+  src: url('VT323-Regular.ttf') format('truetype');
+}
+
 html,
 body,
 .grid-container {
@@ -5,6 +10,26 @@ body,
   height: 100%;
   width: 100%;
   margin: 0;
+}
+
+#message-icon {
+  position: relative;
+  top: -3vh;
+}
+
+.marquee-container {
+  position: relative;
+}
+
+.text-message {
+  position: absolute;
+  top: -5vh;
+  font-family: 'VT323-Regular', Courier, monospace;
+  text-align: center;
+  font-size: 4vh;
+  width: 50vw;
+  height: 4vh;
+  overflow: hidden;
 }
 
 .grid-container {

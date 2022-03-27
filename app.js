@@ -55,8 +55,15 @@ function renderSkeleton(){
     <div id="clock" class="row2col2 grid-box">
         <i class="far fa-clock"></i>
     </div>
-    <div class="row3col1 grid-box"></div>
-    <div class="row3col2 grid-box"></div>
+    <div id="keyboard" class="row3col1 grid-box">
+        <i class="fas fa-edit"></i>
+    </div>
+    <div id="marquee" class="row3col2 grid-box">
+        <i id="message-icon" class="fas fa-comment-dots"></i>
+        <div class="marquee-container">
+            <div id="marquee-message" class="text-message">...</div>
+        </div>
+    </div>
     <div class="row4col1 grid-box"></div>
     <div class="row4col2 grid-box"></div>
   </div>
@@ -65,19 +72,19 @@ function renderSkeleton(){
     const appleIcon = document.createElement('link');
     appleIcon.rel = 'apple-touch-icon';
     appleIcon.sizes = '180x180';
-    appleIcon.href = webRoot + '/favicon_io/apple-touch-icon.png?version=dcf5ae71f63c6318336f1b3d4df4fc95eaef30ba';
+    appleIcon.href = webRoot + '/favicon_io/apple-touch-icon.png?version=16a11cfe758b7b07fcbc0c4f6b9532f9e2935b48';
     document.head.appendChild(appleIcon);
 
     const icon = document.createElement('link');
     icon.rel = 'icon';
     icon.type = 'image/png';
-    icon.href = webRoot + '/favicon_io/favicon-32x32.png?version=dcf5ae71f63c6318336f1b3d4df4fc95eaef30ba';
+    icon.href = webRoot + '/favicon_io/favicon-32x32.png?version=16a11cfe758b7b07fcbc0c4f6b9532f9e2935b48';
     document.head.appendChild(icon);
 
     const stylesheet = document.createElement('link');
     stylesheet.rel = 'stylesheet';
     stylesheet.type = 'text/css';
-    stylesheet.href = webRoot + '/style.css?version=dcf5ae71f63c6318336f1b3d4df4fc95eaef30ba';
+    stylesheet.href = webRoot + '/style.css?version=16a11cfe758b7b07fcbc0c4f6b9532f9e2935b48';
     document.head.appendChild(stylesheet);
 
     document.title = "ON AIR";
@@ -104,8 +111,10 @@ function app(){ // eslint-disable-line no-unused-vars
 
     $('random-pixels').addEventListener(eventName, randomPixels);
     $('clock').addEventListener(eventName, clock);
+    $('marquee').addEventListener(eventName, marqueeMode);
     $('blank-display').addEventListener(eventName, blankDisplay);
     $('zoom-alert').addEventListener(eventName, toggleZoomAlert);
+    $('keyboard').addEventListener(eventName, marqueeKeyboardInput);
 
     webSocketUrl = 'ws://' + webSocketServerAddr + ':81';
     refreshQuery = new XMLHttpRequest();
@@ -157,8 +166,18 @@ function handleWebSocketMessage(event){
 function updateScreen(){
     const randomPixelsDiv = $('random-pixels');
     const clockDiv = $('clock');
+    const marqueeDiv = $('marquee');
     const blankDisplayDiv = $('blank-display');
     const zoomAlertDiv = $('zoom-alert');
+    const marqueeMessage = $('marquee-message');
+
+    marqueeMessage.innerText = state['message'];
+
+    if(state['mode'] === "marquee"){
+        marqueeDiv.className = 'row3col2 grid-box enabled';
+    } else {
+        marqueeDiv.className = 'row3col2 grid-box';
+    }
 
     if(state['mode'] === "clock"){
         clockDiv.className = 'row2col2 grid-box enabled';
@@ -207,6 +226,55 @@ function refreshState(){
         }
     };
     refreshQuery.send();
+}
+
+
+
+function marqueeKeyboardInput(){
+    let userInput = prompt("Enter your message", "");
+
+    if (userInput == null || userInput == "") {
+        console.log("No user input");
+    } else {
+        
+        userInput = userInput.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Replace accented characters
+        userInput = userInput.replace(/[^\x00-\x7F]/g, ""); // Remove non-ASCII characters
+
+        if(userInput==""){
+            alert("Can't display that, sorry!");
+            return;
+        }
+
+        userInput = userInput.substring(0,255); // Trim to maximum length
+
+        const xhr = new XMLHttpRequest();
+    
+        const newMessageJson = {
+            "value": userInput
+        };
+
+        xhr.open('PUT', httpServerAddr + '/message');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(newMessageJson));
+
+        marqueeMode();
+    }
+}
+
+function marqueeMode(){
+    refreshQuery.abort();
+    const xhr = new XMLHttpRequest();
+    
+    const newModeJson = {
+        "name": "marquee"
+    };
+
+    xhr.open('PUT', httpServerAddr + '/mode');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify(newModeJson));
+
+    state['mode'] = 'marquee';
+    updateScreen();
 }
 
 /**
