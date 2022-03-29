@@ -38,6 +38,11 @@ partition "Render screen" {
         :Get numeric glyphs;
         :Draw **TIME** glyphs;
         stop
+    elseif(MARQUEE)
+        :Get current message;
+        :Render with Parola;
+        :Animate current step;
+        stop
     endif
 }
 
