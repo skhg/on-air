@@ -86,6 +86,13 @@ See the [Swagger docs](http://jackhiggins.ie/on-air/docs/) for details
 ## Zoom integration
 Originally I wanted to use Zoom's webhook API to send messages to a gateway API, and then pass these on to the on-air sign. However, it turned out to be easier to use the fantastic [pyzoomproc](https://github.com/darrenpmeyer/pyzoomproc) utility, which runs on my work laptop and triggers [curl](https://github.com/curl/curl) to hit the appropriate endpoints on my sign.
 
+## Scrolling marquee
+Everyone's #1 feature request: `<marquee/>` support. From the webapp or using the `/api/message` endpoint, you can send a message that will be displayed and scroll on the screen.
+
+Current limitations:
+* Non-accented ASCII characters only
+* 255 character max length
+
 ## Remote control webapp
 <img src="images/webapp.jpeg" width="33%" align="right"/>I based the design for the remote control application on the one I made for my [traffic light](https://github.com/skhg/traffic-light-controller/). It's pure JS/CSS with the only external dependency on [FontAwesome](https://fontawesome.com/) for icons.
 
@@ -94,9 +101,11 @@ It's hosted on GitHub pages so all the on-air sign has to do is proxy the initia
 Updates to the sign state are shared via Websocket to all connected clients. Requests to change state are provided by the REST endpoints mentioned above.
 
 ## Next steps and improvements
-Some feature requests i've heard already:
-* Customisable, scrolling text
-* A falling snow animation
+Some future ideas:
+* Handle daylight savings time automatically
+* Update time using NTP
+* Display clock temperature on the webapp
+* Include a QR code on the webapp for sharing easily
 
 ## References and helpful tools
 https://www.pixilart.com/draw#
