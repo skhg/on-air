@@ -1,6 +1,5 @@
 const httpServerAddr = 'http://on-air.fritz.box/api';
 const webSocketServerAddr = window.location.host;
-const webRoot = 'https://jackhiggins.ie/on-air';
 
 let refreshQuery;
 let webSocketUrl;
@@ -36,62 +35,7 @@ function establishWebSocketConnection() {
 }
 
 /**
- * Renders the webapp <div>s within the <body>.
- * Adds some <link>s which are required to load CSS and favicons.
- * @return {undefined}
- */
-function renderSkeleton(){
-    document.body.innerHTML = `
-  <div class="grid-container">
-    <div id="zoom-alert" class="row1col1 grid-box">
-        <i class="fas fa-microphone-alt"></i>
-    </div>
-    <div id="blank-display" class="row1col2 grid-box">
-        <i class="far fa-times-circle"></i>
-    </div>
-    <div id="random-pixels" class="row2col1 grid-box">
-        <i class="fas fa-braille"></i>
-    </div>
-    <div id="clock" class="row2col2 grid-box">
-        <i class="far fa-clock"></i>
-    </div>
-    <div id="keyboard" class="row3col1 grid-box">
-        <i class="fas fa-edit"></i>
-    </div>
-    <div id="marquee" class="row3col2 grid-box">
-        <i id="message-icon" class="fas fa-comment-dots"></i>
-        <div class="marquee-container">
-            <div id="marquee-message" class="text-message">...</div>
-        </div>
-    </div>
-    <div class="row4col1 grid-box"></div>
-    <div class="row4col2 grid-box"></div>
-  </div>
-  `;
-
-    const appleIcon = document.createElement('link');
-    appleIcon.rel = 'apple-touch-icon';
-    appleIcon.sizes = '180x180';
-    appleIcon.href = webRoot + '/favicon_io/apple-touch-icon.png?version=c28864447c6fd1ce6a36061da22bb8b9895b4975';
-    document.head.appendChild(appleIcon);
-
-    const icon = document.createElement('link');
-    icon.rel = 'icon';
-    icon.type = 'image/png';
-    icon.href = webRoot + '/favicon_io/favicon-32x32.png?version=c28864447c6fd1ce6a36061da22bb8b9895b4975';
-    document.head.appendChild(icon);
-
-    const stylesheet = document.createElement('link');
-    stylesheet.rel = 'stylesheet';
-    stylesheet.type = 'text/css';
-    stylesheet.href = webRoot + '/style.css?version=c28864447c6fd1ce6a36061da22bb8b9895b4975';
-    document.head.appendChild(stylesheet);
-
-    document.title = "ON AIR";
-}
-
-/**
- * Entry point to application from HTML. Initialises global state, renders app, and creates event hooks.
+ * Entry point to application from HTML. Initialises global state, creates event hooks.
  * @return {undefined}
  */
 function app(){ // eslint-disable-line no-unused-vars
@@ -103,8 +47,6 @@ function app(){ // eslint-disable-line no-unused-vars
             'call-in-progress': false
         }
     };
-
-    renderSkeleton();
 
     const supportsTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
     const eventName = supportsTouch ? 'touchend' : 'click';

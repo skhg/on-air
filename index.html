@@ -1,12 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <meta charset="UTF-8">
-      <meta name="apple-mobile-web-app-capable" content="yes">	
-      <meta name="apple-mobile-web-app-status-bar-style" content="black">	
-      <meta name="viewport" content="user-scalable=no">
-      <script src="https://kit.fontawesome.com/04eb4e2729.js" crossorigin="anonymous"></script>
-      <script src="https://jackhiggins.ie/on-air/app.js?version=c28864447c6fd1ce6a36061da22bb8b9895b4975"></script>
+    <head>
+        <title>ON AIR</title>
+        <meta charset="UTF-8">
+        <meta name="apple-mobile-web-app-capable" content="yes">	
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">	
+        <meta name="viewport" content="user-scalable=no">
+        <script src="https://kit.fontawesome.com/04eb4e2729.js" crossorigin="anonymous"></script>
+        <script src="https://jackhiggins.ie/on-air/app.js?version=565602a95b28984b316687ffc4af063adbda2ea7"></script>
+        <link rel="apple-touch-icon" sizes="180x180" href="./favicon_io/apple-touch-icon.png?version=565602a95b28984b316687ffc4af063adbda2ea7">
+        <link rel="icon" type="image/png" href="./favicon_io/favicon-32x32.png?version=565602a95b28984b316687ffc4af063adbda2ea7">
+        <link rel="stylesheet" type="text/css" href="./style.css?version=565602a95b28984b316687ffc4af063adbda2ea7">
 	</head>
-	<body onload="app()"/>
+	<body onload="app()">
+        <div class="grid-container">
+            <div id="zoom-alert" class="row1col1 grid-box">
+                <i class="fas fa-microphone-alt"></i>
+            </div>
+            <div id="blank-display" class="row1col2 grid-box">
+                <i class="far fa-times-circle"></i>
+            </div>
+            <div id="random-pixels" class="row2col1 grid-box">
+                <i class="fas fa-braille"></i>
+            </div>
+            <div id="clock" class="row2col2 grid-box">
+                <i class="far fa-clock"></i>
+            </div>
+            <div id="keyboard" class="row3col1 grid-box">
+                <i class="fas fa-edit"></i>
+            </div>
+            <div id="marquee" class="row3col2 grid-box">
+                <i id="message-icon" class="fas fa-comment-dots"></i>
+                <div class="marquee-container">
+                    <div id="marquee-message" class="text-message">...</div>
+                </div>
+            </div>
+            <div class="row4col1 grid-box"></div>
+            <div class="row4col2 grid-box"></div>
+          </div>
+    </body>
 </html>
