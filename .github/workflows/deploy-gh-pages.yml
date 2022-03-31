@@ -24,12 +24,12 @@ jobs:
         replace: "https://jackhiggins.ie/on-air/app.js"
         include: "webapp/index.html"
     
-    - name: Production web root in app.js
+    - name: Production web root in index.html
       uses: jacobtomlinson/gha-find-replace@v2
       with:
-        find: "webRoot = '.'"
-        replace: "webRoot = 'https://jackhiggins.ie/on-air'"
-        include: "webapp/app.js"
+        find: "href=\"./"
+        replace: "href=\"https://jackhiggins.ie/on-air/"
+        include: "webapp/index.html"
     
     - name: Production web socket server in app.js
       uses: jacobtomlinson/gha-find-replace@v2
