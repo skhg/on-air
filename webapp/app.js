@@ -1,6 +1,5 @@
 const httpServerAddr = 'http://on-air.fritz.box/api';
 const webSocketServerAddr =  'on-air.fritz.box';
-const webRoot = '.';
 
 let refreshQuery;
 let webSocketUrl;
@@ -36,7 +35,7 @@ function establishWebSocketConnection() {
 }
 
 /**
- * Entry point to application from HTML. Initialises global state, renders app, and creates event hooks.
+ * Entry point to application from HTML. Initialises global state, creates event hooks.
  * @return {undefined}
  */
 function app(){ // eslint-disable-line no-unused-vars
