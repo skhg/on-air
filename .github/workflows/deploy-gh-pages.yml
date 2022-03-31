@@ -45,6 +45,11 @@ jobs:
       env:
         GITHUB_CONTEXT: ${{ github.sha }}
 
+    - name: Auto Minify
+      uses: nizarmah/auto-minify@v2.1.1
+      with:
+        directory: 'webapp'
+
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3.7.3
       with:
