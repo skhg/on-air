@@ -38,10 +38,9 @@ jobs:
         replace: "webSocketServerAddr = window.location.host"
         include: "webapp/app.js"
 
-    - name: Replace version string
+    - name: Replace version string for assets
       run: |
         sed -i "s/version=latest/version=$GITHUB_SHA/g" webapp/index.html
-        sed -i "s/version=latest/version=$GITHUB_SHA/g" webapp/app.js
       env:
         GITHUB_CONTEXT: ${{ github.sha }}
 
@@ -49,6 +48,20 @@ jobs:
       uses: nizarmah/auto-minify@v2.1.1
       with:
         directory: 'webapp'
+
+    - name: Use minified css
+      uses: jacobtomlinson/gha-find-replace@v2
+      with:
+        find: "style.css"
+        replace: "style.min.css"
+        include: "webapp/index.html"
+
+    - name: Use minified js
+      uses: jacobtomlinson/gha-find-replace@v2
+      with:
+        find: "app.js"
+        replace: "app.min.js"
+        include: "webapp/index.html"
 
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3.7.3
