@@ -18,6 +18,7 @@
 #include <SPI.h>
 #include "./glyphs.h"
 #include <DS3232RTC.h>
+#include <Timezone.h>
 
 #define LED_HARDWARE_TYPE MD_MAX72XX::FC16_HW
 #define LED_COMPONENT_MODULES 4
@@ -62,6 +63,13 @@ WiFiClient WIFI_CLIENT;
 HTTPClient HTTP_CLIENT;
 ESP8266WebServer HTTP_SERVER(80);
 WebSocketsServer WEB_SOCKET_SERVER(81);
+
+/**
+ * Time zone configuration
+ */
+TimeChangeRule berlinCEST = {"CEST", Last, Sun, Mar, 2, 120};  //UTC + 2 hours
+TimeChangeRule berlinCET = {"CET", Last, Sun, Oct, 3, 60};   //UTC + 1 hour
+Timezone localTime(berlinCET, berlinCEST);
 
 /**
  * States and event types
@@ -137,10 +145,12 @@ void renderMarquee() {
 }
 
 void renderClock() {
-  time_t t = now();
-  int currentHour = hour(t);
-  int currentMinute = minute(t);
-  int currentSecond = second(t);
+  time_t utc = now();
+  time_t local = localTime.toLocal(utc);
+  
+  int currentHour = hour(local);
+  int currentMinute = minute(local);
+  int currentSecond = second(local);
 
   int digit1 = currentHour / 10;
   int digit2 = currentHour % 10;
