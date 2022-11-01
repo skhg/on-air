@@ -18,6 +18,7 @@
 #include <SPI.h>
 #include "./glyphs.h"
 #include <DS3232RTC.h>
+#include <Timezone.h>
 
 #define LED_HARDWARE_TYPE MD_MAX72XX::FC16_HW
 #define LED_COMPONENT_MODULES 4
