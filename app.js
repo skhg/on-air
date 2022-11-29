@@ -53,6 +53,7 @@ function app(){ // eslint-disable-line no-unused-vars
 
     $('random-pixels').addEventListener(eventName, randomPixels);
     $('clock').addEventListener(eventName, clock);
+    $('temperature').addEventListener(eventName, temperature);
     $('marquee').addEventListener(eventName, marqueeMode);
     $('blank-display').addEventListener(eventName, blankDisplay);
     $('zoom-alert').addEventListener(eventName, toggleZoomAlert);
@@ -112,6 +113,7 @@ function updateScreen(){
     const blankDisplayDiv = $('blank-display');
     const zoomAlertDiv = $('zoom-alert');
     const marqueeMessage = $('marquee-message');
+    const temperatureDiv = $('temperature');
 
     marqueeMessage.innerText = state['message'];
 
@@ -119,6 +121,12 @@ function updateScreen(){
         marqueeDiv.className = 'row3col2 grid-box enabled';
     } else {
         marqueeDiv.className = 'row3col2 grid-box';
+    }
+
+    if(state['mode'] === "temperature"){
+        temperatureDiv.className = 'row4col1 grid-box enabled';
+    } else {
+        temperatureDiv.className = 'row4col1 grid-box';
     }
 
     if(state['mode'] === "clock"){
@@ -236,6 +244,26 @@ function marqueeMode(){
     xhr.send(JSON.stringify(newModeJson));
 
     state['mode'] = 'random-pixels';
+    updateScreen();
+}
+
+/**
+ * control over the "Temperature" mode
+ * @return {undefined}
+ */
+ function temperature(){
+    refreshQuery.abort();
+    const xhr = new XMLHttpRequest();
+    
+    const newModeJson = {
+        "name": "temperature"
+    };
+
+    xhr.open('PUT', httpServerAddr + '/mode');
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify(newModeJson));
+
+    state['mode'] = 'temperature';
     updateScreen();
 }
 
