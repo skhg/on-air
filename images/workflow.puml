@@ -43,6 +43,12 @@ partition "Render screen" {
         :Render with Parola;
         :Animate current step;
         stop
+    elseif(TEMPERATURE)
+        :Get current temperature;
+        :Construct output message;
+        :Render with Parola;
+        :Animate current step;
+        stop
     endif
 }
 
