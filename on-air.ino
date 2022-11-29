@@ -25,7 +25,7 @@
 #define LED_DIN 13  // nodemcu v3 pin D7
 #define LED_CS 2  // nodemcu v3 pin D4
 #define LED_CLK 14  // nodemcu v3 pin D5
-#define  MARQUEE_STRING_MAX_LENGTH 255
+#define MARQUEE_STRING_MAX_LENGTH 255
 
 const String STATIC_CONTENT_INDEX_LOCATION =
 "http://jackhiggins.ie/on-air/";
@@ -47,6 +47,7 @@ const int HTTP_PAYLOAD_TOO_LARGE = 413;
 
 const String METHOD_NOT_ALLOWED_MESSAGE = "Method Not Allowed";
 
+const float TEMPERATURE_FUDGE_FACTOR = -1.0;  // Handle slight inaccuracy in sensor
 const int SENSOR_READ_INTERVAL_MILLIS = 10000;
 const int RANDOM_PIXEL_INTERVAL_MILLIS = 10;
 const int CLOCK_SEPARATOR_INTERVAL_MILLIS = 1000;
@@ -78,7 +79,8 @@ enum MODES {
   OFF,
   RANDOM_PIXELS,
   CLOCK,
-  MARQUEE
+  MARQUEE,
+  TEMPERATURE
 };
 
 float _clockTemperature = 0.0;
@@ -93,6 +95,7 @@ bool _zoomAlertActive = true;
 bool _zoomCallInProgress = false;
 
 char _marqueeMessage[MARQUEE_STRING_MAX_LENGTH] = { "Hello world!" };
+char _temperatureMessage[10];
 
 /**
  * Application functions
@@ -110,7 +113,7 @@ void readSensors() {
     _sensorReadMillis = _currentMillis;
 
     // read sensors and set the values as global vars
-    _clockTemperature = RTC.temperature() / 4.;
+    _clockTemperature = (RTC.temperature() / 4.) + TEMPERATURE_FUDGE_FACTOR;
 
     sendToWebSocketClients(stateJson());
   }
@@ -127,10 +130,25 @@ void renderScreen() {
     case RANDOM_PIXELS: renderRandomPixels(); break;
     case CLOCK: renderClock(); break;
     case MARQUEE: renderMarquee(); break;
+    case TEMPERATURE: renderTemperature(); break;
     default: break;
   }
 
   _modeChanged = false;
+}
+
+void renderTemperature() {
+  dtostrf(_clockTemperature, 2, 0, _temperatureMessage);
+  strcat(_temperatureMessage, "\xB0""C");
+  
+  if (_modeChanged) {
+    clearScreen();
+    LED_DISPLAY.displayText(_temperatureMessage, PA_CENTER, SCROLL_MS_BETWEEN_FRAMES, SCROLL_PAUSE, PA_NO_EFFECT, PA_NO_EFFECT);
+  }
+
+  if (LED_DISPLAY.displayAnimate()) {
+    LED_DISPLAY.displayReset();
+  }
 }
 
 void renderMarquee() {
@@ -347,6 +365,8 @@ MODES stringToMode(String mode) {
     return CLOCK;
   } else if (mode == "marquee") {
     return MARQUEE;
+  } else if (mode == "temperature") {
+    return TEMPERATURE;
   } else {
     return OFF;
   }
@@ -358,6 +378,7 @@ String modeToString(MODES mode) {
     case RANDOM_PIXELS: return "random-pixels";
     case CLOCK: return "clock";
     case MARQUEE: return "marquee";
+    case TEMPERATURE: return "temperature";
     default: return "Unknown";
   }
 }
