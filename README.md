@@ -103,9 +103,11 @@ Current limitations:
 ## Clock
 The RTC module keeps time quite accurately, to within a few seconds over a year. I used a separate Arduino [sketch](testing/real-time-clock/real-time-clock.ino) to set the UTC time correctly once, and then I rely on the [Timezone](https://github.com/JChristensen/Timezone) library to handle local time conversions. This also conveniently handles daylight savings time adjustments.
 
+## Temperature display
+As the RTC module also includes a [thermometer](https://www.edn.com/rtc-design-part-2-temperature-compensation-is-critical/), the current temperature can also be displayed on-screen. I made a small correction because the sensor is in a closed box and doesn't get much airflow, but it seems to be fairly accurate for "room temperature" values.
+
 ## Next steps and improvements
 Some future ideas:
-* Display clock temperature on the webapp
 * Include a QR code on the webapp for sharing easily
 
 ## References and helpful tools
