@@ -47,7 +47,7 @@ const int HTTP_PAYLOAD_TOO_LARGE = 413;
 
 const String METHOD_NOT_ALLOWED_MESSAGE = "Method Not Allowed";
 
-const float TEMPERATURE_FUDGE_FACTOR = -1.0;  // Handle slight inaccuracy in sensor
+const float TEMPERATURE_FUDGE_FACTOR = -3.0;  // Handle slight inaccuracy in sensor
 const int SENSOR_READ_INTERVAL_MILLIS = 10000;
 const int RANDOM_PIXEL_INTERVAL_MILLIS = 10;
 const int CLOCK_SEPARATOR_INTERVAL_MILLIS = 1000;
