@@ -6,6 +6,7 @@
 html,
 body,
 .grid-container {
+  background-color: #333;
   position: fixed;
   height: 100%;
   width: 100%;
@@ -46,17 +47,17 @@ body,
 }
 
 .grid-box {
-  background-color: #fff1d0;
-  color: #086788;
-  border: 1px solid #07a0c3;
+  background-color: #333;
+  color: #ddd;
+  border: 1px solid #555;
   font-size: 15vh;
   padding-top: 4vh;
   text-align: center;
 }
 
 .enabled {
-  background-color: #f0c808;
-  color: #dd1c1a;
+  background-color: #dd1c1a;
+  color: #333;
 }
 
 .active {
