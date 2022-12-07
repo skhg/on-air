@@ -444,9 +444,8 @@ void setup(void) {
   randomSeed(analogRead(0));
   Serial.begin(115200);
 
+  RTC.begin();
   setSyncProvider(RTC.get);
-
-  // todo handle RTC initialisation failure
 
   LED_DISPLAY.begin();
   clearScreen();
